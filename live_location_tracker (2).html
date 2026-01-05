@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Group Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            height: 80vh;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .setup-form, .room-interface {
+            display: none;
+        }
+
+        .setup-form.active, .room-interface.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .color-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.15);
+        }
+
+        .icon-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .icon-option {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-option:hover {
+            background: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .icon-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            margin-top: 10px;
+        }
+
+        .member-list {
+            margin-top: 20px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .member-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .member-info {
+            flex: 1;
+        }
+
+        .member-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .member-status {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .leader-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e1e5e9;
+        }
+
+        .assign-destination {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .assign-destination select {
+            flex: 1;
+        }
+
+        .path-controls {
+            margin-top: 15px;
+        }
+
+        .room-info {
+            background: #e8f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .room-code {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .status-online {
+            background: #28a745;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .destination-marker {
+            background: #ff6b6b;
+            color: white;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Live Location Tracker</h1>
+            <p>Real-time group coordination and tracking</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <!-- Initial Setup -->
+                <div id="initial-setup" class="setup-form active">
+                    <h2>🚀 Get Started</h2>
+                    <div class="form-group">
+                        <button class="btn" onclick="createRoom()">Create New Room (Leader)</button>
+                        <button class="btn btn-secondary" onclick="showJoinForm()">Join Existing Room</button>
+                    </div>
+                </div>
+
+                <!-- Create Room Form -->
+                <div id="create-room-form" class="setup-form">
+                    <h2>👑 Create Room</h2>
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="leader-name" placeholder="Enter your name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choose Your Color</label>
+                        <div class="color-selector">
+                            <div class="color-option" style="background: #e74c3c" data-color="#e74c3c"></div>
+                            <div class="color-option" style="background: #3498db" data-color="#3498db"></div>
+                            <div class="color-option" style="background: #2ecc71" data-color="#2ecc71"></div>
+                            <div class="color-option" style="background: #f39c12" data-color="#f39c12"></div>
+                            <div class="color-option" style="background: #9b59b6" data-color="#9b59b6"></div>
+                            <div class="color-option" style="background: #1abc9c" data-color="#1abc9c"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Choose Your Icon</label>
+                        <div class="icon-selector">
+                            <div class="icon-option" data-icon="👑">👑</div>
+                            <div class="icon-option" data-icon="🚀">🚀</div>
+                            <div class="icon-option" data-icon="⭐">⭐</div>
+                            <div class="icon-option" data-icon="🎯">🎯</div>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="finalizeRoomCreation()">Create Room & Start Tracking</button>
+                    <button class="btn btn-secondary" onclick="backToStart()">Back</button>
+                </div>
+
+                <!-- Join Room Form -->
+                <div id="join-room-form" class="setup-form">
+                    <h2>🚪 Join Room</h2>
+                    <div class="form-group">
+                        <label>Room Code</label>
+                        <input type="text" id="room-code" placeholder="Enter room code">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="member-name" placeholder="Enter your name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choose Your Color</label>
+                        <div class="color-selector">
+                            <div class="color-option" style="background: #e74c3c" data-color="#e74c3c"></div>
+                            <div class="color-option" style="background: #3498db" data-color="#3498db"></div>
+                            <div class="color-option" style="background: #2ecc71" data-color="#2ecc71"></div>
+                            <div class="color-option" style="background: #f39c12" data-color="#f39c12"></div>
+                            <div class="color-option" style="background: #9b59b6" data-color="#9b59b6"></div>
+                            <div class="color-option" style="background: #1abc9c" data-color="#1abc9c"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Choose Your Icon</label>
+                        <div class="icon-selector">
+                            <div class="icon-option" data-icon="🏃">🏃</div>
+                            <div class="icon-option" data-icon="🚶">🚶</div>
+                            <div class="icon-option" data-icon="🏃‍♀️">🏃‍♀️</div>
+                            <div class="icon-option" data-icon="🚶‍♀️">🚶‍♀️</div>
+                            <div class="icon-option" data-icon="🏃‍♂️">🏃‍♂️</div>
+                            <div class="icon-option" data-icon="🚶‍♂️">🚶‍♂️</div>
+                            <div class="icon-option" data-icon="🎭">🎭</div>
+                            <div class="icon-option" data-icon="🎪">🎪</div>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="joinRoom()">Join Room & Start Tracking</button>
+                    <button class="btn btn-secondary" onclick="backToStart()">Back</button>
+                </div>
+
+                <!-- Room Interface -->
+                <div id="room-interface" class="room-interface">
+                    <div class="room-info">
+                        <div><strong>Room:</strong> <span class="room-code" id="current-room-code"></span></div>
+                        <div><strong>Role:</strong> <span id="user-role"></span></div>
+                        <div><strong>Members:</strong> <span id="member-count">1</span></div>
+                    </div>
+
+                    <div class="member-list">
+                        <h3>👥 Group Members</h3>
+                        <div id="members-container"></div>
+                    </div>
+
+                    <!-- Leader Controls -->
+                    <div id="leader-controls" class="leader-controls" style="display: none;">
+                        <h3>👑 Leader Controls</h3>
+                        
+                        <div class="form-group">
+                            <label>📍 Assign Destination</label>
+                            <div class="assign-destination">
+                                <select id="member-select">
+                                    <option value="">Select member...</option>
+                                </select>
+                            </div>
+                            <small>Click on the map to set a destination for the selected member</small>
+                        </div>
+
+                        <div class="path-controls">
+                            <button class="btn" onclick="togglePaths()">📊 Toggle Path History</button>
+                            <button class="btn btn-secondary" onclick="clearAllPaths()">🧹 Clear All Paths</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-secondary" onclick="leaveRoom()">🚪 Leave Room</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    <script>
+        // Global variables
+        let map;
+        let socket;
+        let isLeader = false;
+        let currentRoom = null;
+        let currentUser = null;
+        let members = {};
+        let markers = {};
+        let destinationMarkers = {};
+        let paths = {};
+        let pathsVisible = false;
+        let selectedColor = '#3498db';
+        let selectedIcon = '👑';
+        let watchId = null;
+        let monitoringStarted = false;
+
+        // Backend configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+        const SOCKET_URL = 'http://localhost:5000';
+
+        // Initialize Socket.IO connection
+        function initializeSocket() {
+            socket = io(SOCKET_URL, {
+                transports: ['websocket', 'polling']
+            });
+
+            // Connection events
+            socket.on('connect', () => {
+                console.log('Connected to server:', socket.id);
+                showNotification('Connected to server', 'success');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+                showNotification('Connection lost. Reconnecting...', 'error');
+            });
+
+            socket.on('reconnect', () => {
+                console.log('Reconnected to server');
+                showNotification('Reconnected to server', 'success');
+                if (currentRoom && currentUser) {
+                    // Rejoin room on reconnect
+                    socket.emit('join-room', {
+                        roomCode: currentRoom.code,
+                        userId: currentUser.id
+                    });
+                }
+            });
+
+            // Room events
+            socket.on('room-state', (data) => {
+                console.log('Room state received:', data);
+                updateRoomState(data.room);
+            });
+
+            socket.on('user-joined', (data) => {
+                console.log('User joined:', data);
+                if (data.user && data.userId) {
+                    members[data.userId] = {
+                        id: data.userId,
+                        name: data.user.name,
+                        color: data.user.color,
+                        icon: data.user.icon,
+                        isLeader: false,
+                        location: null,
+                        destination: null,
+                        lastSeen: new Date()
+                    };
+                    updateMembersList();
+                    updateMemberSelect();
+                    showNotification(`${data.user.name} joined the room!`, 'success');
+                }
+            });
+
+            socket.on('user-left', (data) => {
+                console.log('User left:', data);
+                if (members[data.userId]) {
+                    const userName = members[data.userId].name;
+                    // Remove user marker and path
+                    if (markers[data.userId]) {
+                        map.removeLayer(markers[data.userId]);
+                        delete markers[data.userId];
+                    }
+                    if (paths[data.userId] && paths[data.userId].polyline) {
+                        map.removeLayer(paths[data.userId].polyline);
+                    }
+                    delete members[data.userId];
+                    delete paths[data.userId];
+                    
+                    updateMembersList();
+                    updateMemberSelect();
+                    showNotification(`${userName} left the room`, 'info');
+                }
+            });
+
+            // Location events
+            socket.on('location-updated', (data) => {
+                console.log('Location updated:', data);
+                if (members[data.userId] && data.location) {
+                    members[data.userId].location = data.location;
+                    members[data.userId].lastSeen = new Date();
+                    updateUserMarker(members[data.userId]);
+                    updateUserPath(members[data.userId]);
+                }
+            });
+
+            // Destination events
+            socket.on('destination-set', (data) => {
+                console.log('Destination set:', data);
+                if (members[data.targetUserId] && data.destination) {
+                    members[data.targetUserId].destination = data.destination;
+                    updateDestinationMarker(data.targetUserId, data.destination);
+                    showNotification(`Destination set for ${members[data.targetUserId].name}`, 'success');
+                }
+            });
+
+            socket.on('destination-assigned', (data) => {
+                console.log('Destination assigned to you:', data);
+                showNotification('📍 ' + data.message, 'success');
+                
+                // Show destination on map
+                if (data.destination) {
+                    const destIcon = L.divIcon({
+                        className: 'destination-marker',
+                        html: `<div class="destination-marker" style="background: #ff6b6b; animation: pulse 2s infinite;">🎯</div>`,
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20]
+                    });
+
+                    const destMarker = L.marker([data.destination.lat, data.destination.lng], { icon: destIcon })
+                        .bindPopup('<strong>Your Destination</strong><br>Go here!')
+                        .addTo(map);
+
+                    // Highlight destination for 10 seconds
+                    setTimeout(() => {
+                        if (map.hasLayer(destMarker)) {
+                            map.removeLayer(destMarker);
+                        }
+                    }, 10000);
+                }
+            });
+
+            socket.on('destination-removed', (data) => {
+                console.log('Destination removed:', data);
+                if (members[data.targetUserId]) {
+                    delete members[data.targetUserId].destination;
+                    if (destinationMarkers[data.targetUserId]) {
+                        map.removeLayer(destinationMarkers[data.targetUserId]);
+                        delete destinationMarkers[data.targetUserId];
+                    }
+                    showNotification(`Destination removed for ${members[data.targetUserId].name}`, 'info');
+                }
+            });
+
+            // Location history
+            socket.on('location-history', (data) => {
+                console.log('Location history received:', data);
+                if (data.locations && data.locations.length > 1) {
+                    const coordinates = data.locations.map(loc => [loc.lat, loc.lng]);
+                    const user = members[data.userId];
+                    
+                    if (user && paths[data.userId]) {
+                        if (paths[data.userId].polyline) {
+                            map.removeLayer(paths[data.userId].polyline);
+                        }
+                        
+                        paths[data.userId].coordinates = coordinates;
+                        if (pathsVisible) {
+                            paths[data.userId].polyline = L.polyline(coordinates, {
+                                color: user.color,
+                                weight: 3,
+                                opacity: 0.7
+                            }).addTo(map);
+                        }
+                    }
+                }
+            });
+
+            // Error handling
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+                showNotification('Error: ' + error.message, 'error');
+            });
+
+            // Room messages
+            socket.on('room-message', (data) => {
+                console.log('Room message:', data);
+                // Handle room messages if needed
+            });
+        }
+
+        // API helper functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(API_BASE_URL + endpoint, options);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'API call failed');
+                }
+
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+        function initMap() {
+            map = L.map('map').setView([25.2854, 55.3781], 13); // Dubai coordinates as default
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add click listener for leaders to set destinations
+            map.on('click', function(e) {
+                if (isLeader && document.getElementById('member-select').value) {
+                    setDestination(e.latlng);
+                }
+            });
+        }
+
+        // Color and icon selection
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            
+            // Color selection handlers
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedColor = this.dataset.color;
+                });
+            });
+
+            // Icon selection handlers
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const container = this.parentElement;
+                    container.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedIcon = this.dataset.icon;
+                });
+            });
+
+            // Set default selections
+            document.querySelector('.color-option[data-color="#3498db"]').classList.add('selected');
+            document.querySelector('.icon-option[data-icon="👑"]').classList.add('selected');
+        });
+
+        function createRoom() {
+            hideAllForms();
+            document.getElementById('create-room-form').classList.add('active');
+            // Set default leader icon
+            document.querySelector('#create-room-form .icon-option[data-icon="👑"]').classList.add('selected');
+            selectedIcon = '👑';
+        }
+
+        function showJoinForm() {
+            hideAllForms();
+            document.getElementById('join-room-form').classList.add('active');
+        }
+
+        function backToStart() {
+            hideAllForms();
+            document.getElementById('initial-setup').classList.add('active');
+            selectedColor = '#3498db';
+            selectedIcon = '👑';
+        }
+
+        function hideAllForms() {
+            document.querySelectorAll('.setup-form, .room-interface').forEach(form => {
+                form.classList.remove('active');
+            });
+        }
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+
+        function finalizeRoomCreation() {
+            const name = document.getElementById('leader-name').value.trim();
+            if (!name) {
+                showNotification('Please enter your name', 'error');
+                return;
+            }
+
+            isLeader = true;
+            currentRoom = generateRoomCode();
+            currentUser = {
+                id: 'leader',
+                name: name,
+                color: selectedColor,
+                icon: selectedIcon,
+                isLeader: true,
+                location: null,
+                destination: null
+            };
+
+            members[currentUser.id] = currentUser;
+            
+            startLocationTracking();
+            showRoomInterface();
+        }
+
+        function joinRoom() {
+            const roomCode = document.getElementById('room-code').value.trim();
+            const name = document.getElementById('member-name').value.trim();
+            
+            if (!roomCode || !name) {
+                showNotification('Please enter both room code and your name', 'error');
+                return;
+            }
+
+            currentRoom = roomCode;
+            currentUser = {
+                id: 'member_' + Date.now(),
+                name: name,
+                color: selectedColor,
+                icon: selectedIcon,
+                isLeader: false,
+                location: null,
+                destination: null
+            };
+
+            members[currentUser.id] = currentUser;
+            
+            // In a real app, you'd validate the room code with the server
+            startLocationTracking();
+            showRoomInterface();
+        }
+
+        // Connection status monitoring - only when socket exists
+        function monitorConnection() {
+            setInterval(() => {
+                if (socket && !socket.connected && currentRoom) {
+                    showNotification('Connection lost. Trying to reconnect...', 'error');
+                }
+            }, 10000);
+        }
+
+        function showRoomInterface() {
+            hideAllForms();
+            document.getElementById('room-interface').classList.add('active');
+            document.getElementById('current-room-code').textContent = currentRoom.code;
+            document.getElementById('user-role').textContent = isLeader ? 'Leader 👑' : 'Member';
+            
+            if (isLeader) {
+                document.getElementById('leader-controls').style.display = 'block';
+            }
+            
+            updateMembersList();
+            updateMemberSelect();
+
+            // Start connection monitoring once we're in a room
+            if (!monitoringStarted) {
+                monitorConnection();
+                monitoringStarted = true;
+            }
+        }
+
+        function startLocationTracking() {
+            if (navigator.geolocation) {
+                // Get initial position
+                navigator.geolocation.getCurrentPosition(
+                    updateLocation,
+                    handleLocationError,
+                    { enableHighAccuracy: true }
+                );
+
+                // Watch for location changes
+                watchId = navigator.geolocation.watchPosition(
+                    updateLocation,
+                    handleLocationError,
+                    { 
+                        enableHighAccuracy: true, 
+                        timeout: 5000, 
+                        maximumAge: 10000 
+                    }
+                );
+            } else {
+                showNotification('Geolocation is not supported by this browser', 'error');
+            }
+        }
+
+        function updateLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            // Update current user's location locally
+            if (currentUser) {
+                currentUser.location = { lat, lng, accuracy };
+                currentUser.lastSeen = new Date();
+                
+                // Update or create marker
+                updateUserMarker(currentUser);
+                
+                // Update path
+                updateUserPath(currentUser);
+
+                // Send location to server via socket
+                if (socket && socket.connected) {
+                    socket.emit('location-update', {
+                        userId: currentUser.id,
+                        location: {
+                            lat: lat,
+                            lng: lng,
+                            accuracy: accuracy,
+                            altitude: position.coords.altitude,
+                            bearing: position.coords.heading,
+                            speed: position.coords.speed
+                        }
+                    });
+                }
+
+                // Update map center on first location
+                if (!markers[currentUser.id]) {
+                    map.setView([lat, lng], 15);
+                }
+            }
+        }
+
+        function handleLocationError(error) {
+            let message = 'Unknown location error';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location access denied. Please enable location sharing.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Location request timeout.';
+                    break;
+            }
+            showNotification(message, 'error');
+        }
+
+        function updateUserMarker(user) {
+            if (!user || !user.location) return;
+
+            const userId = user.id;
+            const location = user.location;
+
+            if (markers[userId]) {
+                markers[userId].setLatLng([location.lat, location.lng]);
+            } else {
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="member-icon" style="background-color: ${user.color}; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+                        ${user.icon}
+                    </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+
+                const popupContent = `
+                    <strong>${user.name}</strong>${user.isLeader ? ' 👑' : ''}
+                    <br><small>Last seen: ${user.lastSeen ? new Date(user.lastSeen).toLocaleTimeString() : 'Now'}</small>
+                    ${location.accuracy ? `<br><small>Accuracy: ${Math.round(location.accuracy)}m</small>` : ''}
+                `;
+
+                markers[userId] = L.marker([location.lat, location.lng], { icon: customIcon })
+                    .bindPopup(popupContent)
+                    .addTo(map);
+            }
+
+            // Update popup content
+            const popupContent = `
+                <strong>${user.name}</strong>${user.isLeader ? ' 👑' : ''}
+                <br><small>Last seen: ${user.lastSeen ? new Date(user.lastSeen).toLocaleTimeString() : 'Now'}</small>
+                ${location.accuracy ? `<br><small>Accuracy: ${Math.round(location.accuracy)}m</small>` : ''}
+            `;
+            markers[userId].setPopupContent(popupContent);
+        }
+
+        function updateDestinationMarker(userId, destination) {
+            if (!destination || !members[userId]) return;
+
+            // Remove existing destination marker
+            if (destinationMarkers[userId]) {
+                map.removeLayer(destinationMarkers[userId]);
+            }
+
+            // Create destination marker
+            const destIcon = L.divIcon({
+                className: 'destination-marker',
+                html: `<div class="destination-marker" style="background: #ff6b6b; color: white; border: 3px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const member = members[userId];
+            destinationMarkers[userId] = L.marker([destination.lat, destination.lng], { icon: destIcon })
+                .bindPopup(`<strong>Destination for ${member.name}</strong><br>Set at: ${new Date(destination.setAt || destination.timestamp).toLocaleTimeString()}<br><small>Click to remove (Leader only)</small>`)
+                .addTo(map);
+
+            destinationMarkers[userId].on('click', function() {
+                if (isLeader) {
+                    removeDestination(userId);
+                }
+            });
+        }
+
+        function updateUserPath(user) {
+            if (!user.location) return;
+
+            if (!paths[user.id]) {
+                paths[user.id] = {
+                    coordinates: [],
+                    polyline: null
+                };
+            }
+
+            paths[user.id].coordinates.push([user.location.lat, user.location.lng]);
+
+            // Keep only last 50 points to avoid memory issues
+            if (paths[user.id].coordinates.length > 50) {
+                paths[user.id].coordinates = paths[user.id].coordinates.slice(-50);
+            }
+
+            if (paths[user.id].polyline) {
+                map.removeLayer(paths[user.id].polyline);
+            }
+
+            if (pathsVisible && paths[user.id].coordinates.length > 1) {
+                paths[user.id].polyline = L.polyline(paths[user.id].coordinates, {
+                    color: user.color,
+                    weight: 3,
+                    opacity: 0.7
+                }).addTo(map);
+            }
+        }
+
+        function setDestination(latlng) {
+            const memberId = document.getElementById('member-select').value;
+            if (!memberId || !isLeader) return;
+
+            const member = members[memberId];
+            if (!member) return;
+
+            // Send destination via socket
+            socket.emit('set-destination', {
+                targetUserId: memberId,
+                destination: { 
+                    lat: latlng.lat, 
+                    lng: latlng.lng 
+                }
+            });
+        }
+
+        function removeDestination(userId) {
+            if (!isLeader) return;
+
+            // Send remove destination via socket
+            socket.emit('remove-destination', {
+                targetUserId: userId
+            });
+        }
+
+        function updateMembersList() {
+            const container = document.getElementById('members-container');
+            container.innerHTML = '';
+
+            Object.values(members).forEach(member => {
+                const memberElement = document.createElement('div');
+                memberElement.className = 'member-item';
+                
+                const statusClass = member.lastSeen && (new Date() - member.lastSeen) < 60000 ? 'status-online' : 'status-offline';
+                
+                memberElement.innerHTML = `
+                    <div class="member-icon" style="background-color: ${member.color}">
+                        ${member.icon}
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">
+                            ${member.name} ${member.isLeader ? '👑' : ''}
+                        </div>
+                        <div class="member-status">
+                            ${member.location ? 'Location shared' : 'No location'}
+                            <span class="status-indicator ${statusClass}"></span>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(memberElement);
+            });
+
+            document.getElementById('member-count').textContent = Object.keys(members).length;
+        }
+
+        function updateMemberSelect() {
+            const select = document.getElementById('member-select');
+            select.innerHTML = '<option value="">Select member...</option>';
+            
+            Object.values(members).forEach(member => {
+                if (!member.isLeader) {
+                    const option = document.createElement('option');
+                    option.value = member.id;
+                    option.textContent = `${member.name} ${member.icon}`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        function togglePaths() {
+            pathsVisible = !pathsVisible;
+            
+            if (pathsVisible) {
+                // Request location history for all members
+                Object.keys(members).forEach(userId => {
+                    if (userId !== currentUser.id) {
+                        socket.emit('get-location-history', {
+                            userId: userId,
+                            timeRange: 3600000 // 1 hour
+                        });
+                    }
+                });
+            }
+            
+            Object.keys(paths).forEach(userId => {
+                if (paths[userId].polyline) {
+                    if (pathsVisible) {
+                        if (!map.hasLayer(paths[userId].polyline)) {
+                            paths[userId].polyline.addTo(map);
+                        }
+                    } else {
+                        if (map.hasLayer(paths[userId].polyline)) {
+                            map.removeLayer(paths[userId].polyline);
+                        }
+                    }
+                }
+            });
+            
+            showNotification(`Path history ${pathsVisible ? 'shown' : 'hidden'}`, 'info');
+        }
+
+        async function leaveRoom() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            try {
+                // Leave room via API
+                if (currentRoom && currentUser) {
+                    await apiCall(`/rooms/${currentRoom.code}/leave`, 'POST', {
+                        userId: currentUser.id
+                    });
+                }
+            } catch (error) {
+                console.error('Error leaving room:', error);
+            }
+
+            // Disconnect socket
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            // Clear map
+            Object.values(markers).forEach(marker => map.removeLayer(marker));
+            Object.values(destinationMarkers).forEach(marker => map.removeLayer(marker));
+            Object.values(paths).forEach(path => {
+                if (path.polyline) map.removeLayer(path.polyline);
+            });
+            
+            // Reset variables
+            currentRoom = null;
+            currentUser = null;
+            isLeader = false;
+            members = {};
+            markers = {};
+            destinationMarkers = {};
+            paths = {};
+            pathsVisible = false;
+            
+            backToStart();
+            showNotification('Left room successfully', 'info');
+
+            // Reinitialize socket for next connection
+            setTimeout(() => {
+                initializeSocket();
+            }, 1000);
+        
+            // Reset variables
+            currentRoom = null;
+            currentUser = null;
+            isLeader = false;
+            members = {};
+            markers = {};
+            destinationMarkers = {};
+            paths = {};
+            pathsVisible = false;
+            
+            backToStart();
+            showNotification('Left room successfully', 'info');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.background = '#e74c3c';
+            } else if (type === 'success') {
+                notification.style.background = '#27ae60';
+            } else {
+                notification.style.background = '#3498db';
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Simulate other members joining (for demo purposes)
+        function simulateMembers() {
+            if (!isLeader) return;
+            
+            setTimeout(() => {
+                const demoMember = {
+                    id: 'demo_member_1',
+                    name: 'Alice',
+                    color: '#e74c3c',
+                    icon: '🏃‍♀️',
+                    isLeader: false,
+                    location: { lat: 25.2844, lng: 55.3771 },
+                    destination: null,
+                    lastSeen: new Date()
+                };
+                
+                members[demoMember.id] = demoMember;
+                updateUserMarker(demoMember);
+                updateMembersList();
+                updateMemberSelect();
+                showNotification('Alice joined the room!', 'success');
+            }, 3000);
+            
+            setTimeout(() => {
+                const demoMember2 = {
+                    id: 'demo_member_2',
+                    name: 'Bob',
+                    color: '#2ecc71',
+                    icon: '🚶‍♂️',
+                    isLeader: false,
+                    location: { lat: 25.2864, lng: 55.3791 },
+                    destination: null,
+                    lastSeen: new Date()
+                };
+                
+                members[demoMember2.id] = demoMember2;
+                updateUserMarker(demoMember2);
+                updateMembersList();
+                updateMemberSelect();
+                showNotification('Bob joined the room!', 'success');
+            }, 6000);
+        }
+
+        // Auto-start demo when leader creates room
+        function finalizeRoomCreation() {
+            const name = document.getElementById('leader-name').value.trim();
+            if (!name) {
+                showNotification('Please enter your name', 'error');
+                return;
+            }
+
+            isLeader = true;
+            currentRoom = generateRoomCode();
+            currentUser = {
+                id: 'leader',
+                name: name,
+                color: selectedColor,
+                icon: selectedIcon,
+                isLeader: true,
+                location: null,
+                destination: null
+            };
+
+            members[currentUser.id] = currentUser;
+            
+            startLocationTracking();
+            showRoomInterface();
+            simulateMembers(); // Start demo
+        }
+
+        // Update member locations periodically (simulation)
+        setInterval(() => {
+            Object.values(members).forEach(member => {
+                if (member.id !== currentUser?.id && member.location) {
+                    // Simulate slight movement
+                    const lat = member.location.lat + (Math.random() - 0.5) * 0.001;
+                    const lng = member.location.lng + (Math.random() - 0.5) * 0.001;
+                    member.location = { lat, lng };
+                    member.lastSeen = new Date();
+                    updateUserMarker(member);
+                    updateUserPath(member);
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
