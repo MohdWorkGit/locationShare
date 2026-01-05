@@ -13,10 +13,15 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   const [notification, setNotification] = useState(null)
   const [destinationPath, setDestinationPath] = useState([])
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
+  }
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
   }
 
   // Initialize members and destination path from room data
@@ -89,8 +94,13 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   }
 
   return (
-    <div className="main-content">
-      <div className="sidebar">
+    <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Sidebar Toggle Button */}
+      <button className="sidebar-toggle" onClick={toggleSidebar}>
+        {sidebarCollapsed ? '☰' : '✕'}
+      </button>
+
+      <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="room-info">
           <div><strong>Room:</strong> <span className="room-code">{room.code}</span></div>
           <div><strong>Role:</strong> {isLeader ? 'Leader 👑' : 'Member'}</div>
