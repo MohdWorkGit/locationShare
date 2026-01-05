@@ -39,11 +39,13 @@ function App() {
 
   return (
     <div className="app">
-      <div className="container">
-        <div className="header">
-          <h1>🌍 Live Location Tracker</h1>
-          <p>Real-time group coordination and tracking</p>
-        </div>
+      <div className={`container ${currentRoom ? 'no-header' : ''}`}>
+        {!currentRoom && (
+          <div className="header">
+            <h1>🌍 Live Location Tracker</h1>
+            <p>Real-time group coordination and tracking</p>
+          </div>
+        )}
 
         {!currentRoom ? (
           <RoomSetup

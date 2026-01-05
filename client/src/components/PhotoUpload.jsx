@@ -13,9 +13,9 @@ function PhotoUpload({ selectedPhoto, onPhotoSelect }) {
         return
       }
 
-      // Check file size (limit to 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Image size should be less than 2MB')
+      // Check file size (limit to 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image size should be less than 10MB')
         return
       }
 

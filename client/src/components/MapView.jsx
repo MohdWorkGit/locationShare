@@ -19,6 +19,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
+  const [mapType, setMapType] = useState('street') // street or satellite
 
   // Set initial view to current user's location
   useEffect(() => {
@@ -55,30 +56,78 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     })
   }
 
-  const createDestinationIcon = (number, isCurrent, isVisited) => {
+  const createDestinationIcon = (number, isCurrent, isVisited, leaderIcon) => {
     const bgColor = isVisited ? '#4caf50' : isCurrent ? '#ff9800' : '#ff6b6b'
-    const content = isVisited ? '✓' : number
+    let content = isVisited ? '✓' : number
+
+    // Use leader's icon/photo for current destination
+    if (isCurrent && leaderIcon) {
+      const isPhoto = isPhotoIcon(leaderIcon)
+      content = isPhoto
+        ? `<img src="${leaderIcon}" alt="Leader" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
+        : leaderIcon
+    }
+
+    const size = isCurrent ? 50 : 35
+    const iconSize = [size, size]
+    const iconAnchor = [size / 2, size / 2]
 
     return L.divIcon({
       className: 'destination-marker',
-      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 16px;">
+      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: ${isCurrent ? '24px' : '16px'}; overflow: hidden;">
         ${content}
       </div>`,
-      iconSize: [35, 35],
-      iconAnchor: [17.5, 17.5]
+      iconSize: iconSize,
+      iconAnchor: iconAnchor
     })
+  }
+
+  const getLeaderIcon = () => {
+    const leader = Object.values(members).find(m => m.isLeader)
+    return leader?.icon || null
+  }
+
+  const getTileLayerUrl = () => {
+    if (mapType === 'satellite') {
+      return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    }
+    return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  }
+
+  const getTileLayerAttribution = () => {
+    if (mapType === 'satellite') {
+      return '&copy; <a href="https://www.esri.com/">Esri</a>'
+    }
+    return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }
 
   return (
     <div className="map-container">
+      {/* Map Type Toggle */}
+      <div className="map-controls">
+        <button
+          className={`map-toggle-btn ${mapType === 'street' ? 'active' : ''}`}
+          onClick={() => setMapType('street')}
+        >
+          🗺️ Street
+        </button>
+        <button
+          className={`map-toggle-btn ${mapType === 'satellite' ? 'active' : ''}`}
+          onClick={() => setMapType('satellite')}
+        >
+          🛰️ Satellite
+        </button>
+      </div>
+
       <MapContainer
         center={center}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={mapType}
+          attribution={getTileLayerAttribution()}
+          url={getTileLayerUrl()}
         />
 
         <MapClickHandler
@@ -112,7 +161,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         {destinationPath && destinationPath.map((dest, index) => {
           const isCurrent = index === currentDestinationIndex
           const isVisited = index < currentDestinationIndex
-          const icon = createDestinationIcon(index + 1, isCurrent, isVisited)
+          const leaderIcon = getLeaderIcon()
+          const icon = createDestinationIcon(index + 1, isCurrent, isVisited, leaderIcon)
 
           return (
             <Marker

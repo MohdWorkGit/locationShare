@@ -8,12 +8,18 @@ A real-time group coordination and location tracking web application built with 
 - **Leader/Member Roles**: Designated leader can coordinate and monitor team members
 - **Real-Time Location Tracking**: HTML5 Geolocation + WebSocket updates
 - **Interactive Map**: Leaflet.js powered map with custom markers
-- **Photo Upload**: Users can upload custom profile photos or choose emoji icons
+  - **Map Type Toggle**: Switch between Street and Satellite views
+  - **Collapsible Sidebar**: Expand map to full screen
+  - **Full-Screen Mode**: Hide header for maximum map visibility
+- **Photo Upload**: Users can upload custom profile photos (up to 10MB) or choose emoji icons
+  - Photos displayed on map markers and member lists
+  - Automatic base64 encoding for easy storage
 - **Path Tracking**: Records and displays movement history for all members
 - **Member Management**: Custom names, colors, photo/icon profiles, and online status
 - **Global Destination Route**: Leaders create a route of destinations for all members
   - Click on map to add destinations to the route
-  - Numbered waypoints with current/visited status indicators
+  - **Current destination shows leader's icon/photo** (larger, orange marker)
+  - Numbered waypoints with current/visited status indicators (red→orange→green)
   - Set active destination for team navigation
   - Visual path connecting all destinations
   - Export route in multiple formats (JSON, GPX, CSV)
