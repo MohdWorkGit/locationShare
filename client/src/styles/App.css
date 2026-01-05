@@ -97,44 +97,33 @@
   position: relative;
 }
 
-.map-controls {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-  display: flex;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
 .map-toggle-btn {
-  background: white;
-  border: 2px solid #e1e5e9;
-  color: #666;
-  padding: 10px 16px;
+  position: absolute;
+  top: 80px;
+  left: 20px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  width: 42px;
+  height: 42px;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 24px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .map-toggle-btn:hover {
-  background: #f8f9fa;
-  border-color: #667eea;
+  background: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.map-toggle-btn.active {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+.map-toggle-btn:active {
+  transform: scale(0.95);
 }
 
 .setup-form {
@@ -417,16 +406,12 @@
     transform: translateX(-100%);
   }
 
-  .map-controls {
-    top: 10px;
-    right: 10px;
-    flex-direction: column;
-    padding: 6px;
-  }
-
   .map-toggle-btn {
-    padding: 8px 12px;
-    font-size: 12px;
+    top: 70px;
+    left: 10px;
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
   }
 }
 

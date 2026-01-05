@@ -57,10 +57,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   }
 
   const createDestinationIcon = (number, isCurrent, isVisited, leaderIcon) => {
-    const bgColor = isVisited ? '#4caf50' : isCurrent ? '#ff9800' : '#ff6b6b'
-    let content = isVisited ? '✓' : number
+    const bgColor = isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b'
+    let content = number // Always show number for old destinations
 
-    // Use leader's icon/photo for current destination
+    // Use leader's icon/photo ONLY for current destination
     if (isCurrent && leaderIcon) {
       const isPhoto = isPhotoIcon(leaderIcon)
       content = isPhoto
@@ -104,20 +104,13 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   return (
     <div className="map-container">
       {/* Map Type Toggle */}
-      <div className="map-controls">
-        <button
-          className={`map-toggle-btn ${mapType === 'street' ? 'active' : ''}`}
-          onClick={() => setMapType('street')}
-        >
-          🗺️ Street
-        </button>
-        <button
-          className={`map-toggle-btn ${mapType === 'satellite' ? 'active' : ''}`}
-          onClick={() => setMapType('satellite')}
-        >
-          🛰️ Satellite
-        </button>
-      </div>
+      <button
+        className="map-toggle-btn"
+        onClick={() => setMapType(mapType === 'street' ? 'satellite' : 'street')}
+        title={`Switch to ${mapType === 'street' ? 'satellite' : 'street'} view`}
+      >
+        {mapType === 'street' ? '🛰️' : '🗺️'}
+      </button>
 
       <MapContainer
         center={center}
