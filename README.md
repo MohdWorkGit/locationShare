@@ -8,9 +8,15 @@ A real-time group coordination and location tracking web application built with 
 - **Leader/Member Roles**: Designated leader can coordinate and monitor team members
 - **Real-Time Location Tracking**: HTML5 Geolocation + WebSocket updates
 - **Interactive Map**: Leaflet.js powered map with custom markers
-- **Path Tracking**: Records and displays movement history
-- **Member Management**: Custom names, colors, icons, and online status
-- **Destination Assignment**: Leaders can assign destinations to members
+- **Photo Upload**: Users can upload custom profile photos or choose emoji icons
+- **Path Tracking**: Records and displays movement history for all members
+- **Member Management**: Custom names, colors, photo/icon profiles, and online status
+- **Global Destination Route**: Leaders create a route of destinations for all members
+  - Click on map to add destinations to the route
+  - Numbered waypoints with current/visited status indicators
+  - Set active destination for team navigation
+  - Visual path connecting all destinations
+  - Export route in multiple formats (JSON, GPX, CSV)
 
 ## Tech Stack
 
@@ -102,22 +108,39 @@ locationShare/
 ### Creating a Room (Leader)
 1. Click "Create New Room (Leader)"
 2. Enter your name
-3. Choose your color and icon
-4. Click "Create Room & Start Tracking"
-5. Share the generated room code with team members
+3. Choose your color
+4. Upload a profile photo OR choose an emoji icon
+5. Click "Create Room & Start Tracking"
+6. Share the generated room code with team members
 
 ### Joining a Room (Member)
 1. Click "Join Existing Room"
 2. Enter the room code provided by the leader
 3. Enter your name
-4. Choose your color and icon
-5. Click "Join Room & Start Tracking"
+4. Choose your color
+5. Upload a profile photo OR choose an emoji icon
+6. Click "Join Room & Start Tracking"
 
 ### Leader Features
-- View all member locations in real-time
-- Assign destinations by selecting a member and clicking on the map
-- Toggle path history visibility
-- Clear all path history
+- **View all member locations** in real-time on the map
+- **Create destination routes**:
+  - Click anywhere on the map to add destinations to the route
+  - Destinations are added as numbered waypoints
+  - All members see the same destination route
+- **Manage destination route**:
+  - Set which destination is currently active
+  - Remove individual destinations from the route
+  - Clear the entire route
+- **Export routes**: Download the destination path as JSON, GPX, or CSV
+- **Toggle member path history** to see movement trails
+- **Member management**: View all members with their status and last seen time
+
+### Member Features
+- See your real-time location on the map
+- View the global destination route set by the leader
+- See current active destination highlighted
+- View other team members' locations
+- Receive notifications when destinations are added or changed
 
 ### Permissions
 The application requires location permissions to track your position. Make sure to allow location access when prompted by your browser.
@@ -129,24 +152,26 @@ The application requires location permissions to track your position. Make sure 
 - `POST /api/rooms/:roomCode/join` - Join an existing room
 - `GET /api/rooms/:roomCode` - Get room details
 - `POST /api/rooms/:roomCode/leave` - Leave a room
+- `GET /api/rooms/:roomCode/export?format={json|gpx|csv}` - Export destination path
 
 ### Socket.IO Events
 
 #### Client to Server
 - `join-room` - Join a room via socket
 - `location-update` - Send location update
-- `set-destination` - Set destination for a member (leader only)
-- `remove-destination` - Remove destination (leader only)
+- `add-destination-to-path` - Add destination to global route (leader only)
+- `remove-destination-from-path` - Remove destination from route (leader only)
+- `clear-destination-path` - Clear entire destination route (leader only)
+- `set-current-destination-index` - Set active destination (leader only)
 - `get-location-history` - Request location history
 
 #### Server to Client
-- `room-state` - Current room state
+- `room-state` - Current room state (includes destination path)
 - `user-joined` - New user joined notification
 - `user-left` - User left notification
 - `location-updated` - Location update from another user
-- `destination-set` - Destination assigned notification
-- `destination-assigned` - Personal destination assignment
-- `destination-removed` - Destination removed notification
+- `destination-path-updated` - Destination route modified
+- `current-destination-updated` - Active destination changed
 - `location-history` - Historical location data
 
 ## Production Build

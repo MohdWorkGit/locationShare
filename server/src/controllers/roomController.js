@@ -114,7 +114,81 @@ const roomController = {
       console.error('Error leaving room:', error);
       res.status(500).json({ error: 'Failed to leave room' });
     }
+  },
+
+  // Export destination path
+  exportDestinationPath: (req, res) => {
+    try {
+      const { roomCode } = req.params;
+      const { format = 'json' } = req.query;
+
+      const room = rooms.get(roomCode);
+      if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+      }
+
+      const destinationPath = room.getDestinationPath();
+
+      if (format === 'gpx') {
+        // Export as GPX format
+        const gpx = generateGPX(destinationPath, room.code);
+        res.set('Content-Type', 'application/gpx+xml');
+        res.set('Content-Disposition', `attachment; filename="route-${room.code}.gpx"`);
+        res.send(gpx);
+      } else if (format === 'csv') {
+        // Export as CSV format
+        const csv = generateCSV(destinationPath);
+        res.set('Content-Type', 'text/csv');
+        res.set('Content-Disposition', `attachment; filename="route-${room.code}.csv"`);
+        res.send(csv);
+      } else {
+        // Default: JSON format
+        res.status(200).json({
+          success: true,
+          roomCode: room.code,
+          destinationPath: destinationPath,
+          totalDestinations: destinationPath.length,
+          exportedAt: new Date()
+        });
+      }
+    } catch (error) {
+      console.error('Error exporting destination path:', error);
+      res.status(500).json({ error: 'Failed to export destination path' });
+    }
   }
 };
+
+// Helper function to generate GPX format
+function generateGPX(destinations, roomCode) {
+  const header = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="LocationTracker" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Route ${roomCode}</name>
+    <time>${new Date().toISOString()}</time>
+  </metadata>
+  <rte>
+    <name>Destination Route</name>`;
+
+  const waypoints = destinations.map((dest, index) => `
+    <rtept lat="${dest.lat}" lon="${dest.lng}">
+      <name>Destination ${index + 1}</name>
+      <time>${dest.addedAt}</time>
+    </rtept>`).join('');
+
+  const footer = `
+  </rte>
+</gpx>`;
+
+  return header + waypoints + footer;
+}
+
+// Helper function to generate CSV format
+function generateCSV(destinations) {
+  const header = 'Order,Latitude,Longitude,Added At\n';
+  const rows = destinations.map((dest, index) =>
+    `${index + 1},${dest.lat},${dest.lng},${dest.addedAt}`
+  ).join('\n');
+  return header + rows;
+}
 
 module.exports = { roomController, rooms, userRooms };

@@ -1,43 +1,42 @@
+import DestinationPath from './DestinationPath'
+import { clearDestinationPath } from '../services/socketService'
+
 function LeaderControls({
-  members,
-  selectedMember,
-  onMemberSelect,
+  destinationPath,
+  currentDestinationIndex,
   onTogglePaths,
-  onClearPaths,
-  pathsVisible
+  pathsVisible,
+  onExport
 }) {
-  const memberList = Object.values(members).filter(m => !m.isLeader)
+  const handleClearPath = () => {
+    if (window.confirm('Are you sure you want to clear the entire destination path?')) {
+      clearDestinationPath()
+    }
+  }
 
   return (
     <div className="leader-controls">
       <h3>👑 Leader Controls</h3>
 
       <div className="form-group">
-        <label>📍 Assign Destination</label>
-        <div className="assign-destination">
-          <select
-            value={selectedMember}
-            onChange={(e) => onMemberSelect(e.target.value)}
-          >
-            <option value="">Select member...</option>
-            {memberList.map(member => (
-              <option key={member.id} value={member.id}>
-                {member.name} {member.icon}
-              </option>
-            ))}
-          </select>
-        </div>
-        <small>Click on the map to set a destination for the selected member</small>
+        <label>📍 Add Destinations</label>
+        <small>Click anywhere on the map to add a destination to the route</small>
       </div>
 
       <div className="path-controls">
         <button className="btn" onClick={onTogglePaths}>
-          📊 {pathsVisible ? 'Hide' : 'Show'} Path History
+          📊 {pathsVisible ? 'Hide' : 'Show'} Member Paths
         </button>
-        <button className="btn btn-secondary" onClick={onClearPaths}>
-          🧹 Clear All Paths
+        <button className="btn btn-secondary" onClick={handleClearPath}>
+          🧹 Clear Route
         </button>
       </div>
+
+      <DestinationPath
+        destinationPath={destinationPath}
+        currentDestinationIndex={currentDestinationIndex}
+        onExport={onExport}
+      />
     </div>
   )
 }

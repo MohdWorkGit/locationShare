@@ -104,6 +104,37 @@ export const onLocationHistory = (callback) => {
   s.on('location-history', callback)
 }
 
+// Destination path functions
+export const addDestinationToPath = (destination) => {
+  const s = getSocket()
+  s.emit('add-destination-to-path', { destination })
+}
+
+export const removeDestinationFromPath = (index) => {
+  const s = getSocket()
+  s.emit('remove-destination-from-path', { index })
+}
+
+export const clearDestinationPath = () => {
+  const s = getSocket()
+  s.emit('clear-destination-path', {})
+}
+
+export const setCurrentDestinationIndex = (index) => {
+  const s = getSocket()
+  s.emit('set-current-destination-index', { index })
+}
+
+export const onDestinationPathUpdated = (callback) => {
+  const s = getSocket()
+  s.on('destination-path-updated', callback)
+}
+
+export const onCurrentDestinationUpdated = (callback) => {
+  const s = getSocket()
+  s.on('current-destination-updated', callback)
+}
+
 export default {
   initializeSocket,
   getSocket,
@@ -120,5 +151,11 @@ export default {
   onDestinationSet,
   onDestinationAssigned,
   onDestinationRemoved,
-  onLocationHistory
+  onLocationHistory,
+  addDestinationToPath,
+  removeDestinationFromPath,
+  clearDestinationPath,
+  setCurrentDestinationIndex,
+  onDestinationPathUpdated,
+  onCurrentDestinationUpdated
 }

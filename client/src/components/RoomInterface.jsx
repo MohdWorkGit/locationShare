@@ -9,16 +9,17 @@ import { leaveRoom } from '../services/api'
 
 function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   const [members, setMembers] = useState({})
-  const [selectedMember, setSelectedMember] = useState('')
   const [pathsVisible, setPathsVisible] = useState(false)
   const [notification, setNotification] = useState(null)
+  const [destinationPath, setDestinationPath] = useState([])
+  const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
   }
 
-  // Initialize members from room data
+  // Initialize members and destination path from room data
   useEffect(() => {
     const initialMembers = {}
     room.users.forEach(u => {
@@ -30,6 +31,14 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
       }
     })
     setMembers(initialMembers)
+
+    // Initialize destination path
+    if (room.destinationPath) {
+      setDestinationPath(room.destinationPath)
+    }
+    if (room.currentDestinationIndex !== undefined) {
+      setCurrentDestinationIndex(room.currentDestinationIndex)
+    }
   }, [room])
 
   // Use custom hooks
@@ -49,6 +58,8 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
     user.id,
     members,
     setMembers,
+    setDestinationPath,
+    setCurrentDestinationIndex,
     showNotification
   )
 
@@ -67,9 +78,14 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
     showNotification(`Path history ${!pathsVisible ? 'shown' : 'hidden'}`, 'info')
   }
 
-  const handleClearPaths = () => {
-    // This would need to be implemented in the backend
-    showNotification('Paths cleared', 'info')
+  const handleExport = async (format) => {
+    try {
+      const url = `http://localhost:5000/api/rooms/${room.code}/export?format=${format}`
+      window.open(url, '_blank')
+      showNotification(`Exporting route as ${format.toUpperCase()}...`, 'success')
+    } catch (error) {
+      showNotification('Failed to export route', 'error')
+    }
   }
 
   return (
@@ -85,12 +101,11 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
 
         {isLeader && (
           <LeaderControls
-            members={members}
-            selectedMember={selectedMember}
-            onMemberSelect={setSelectedMember}
+            destinationPath={destinationPath}
+            currentDestinationIndex={currentDestinationIndex}
             onTogglePaths={handleTogglePaths}
-            onClearPaths={handleClearPaths}
             pathsVisible={pathsVisible}
+            onExport={handleExport}
           />
         )}
 
@@ -105,8 +120,9 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
         members={members}
         currentUserId={user.id}
         isLeader={isLeader}
-        selectedMember={selectedMember}
         pathsVisible={pathsVisible}
+        destinationPath={destinationPath}
+        currentDestinationIndex={currentDestinationIndex}
       />
 
       {notification && (
