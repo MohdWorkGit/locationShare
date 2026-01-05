@@ -79,7 +79,10 @@ class Room {
       addedAt: new Date(),
       order: this.destinationPath.length
     });
-    return this.destinationPath.length - 1;
+    const newIndex = this.destinationPath.length - 1;
+    // Automatically set the new destination as current
+    this.currentDestinationIndex = newIndex;
+    return newIndex;
   }
 
   removeDestinationFromPath(index) {

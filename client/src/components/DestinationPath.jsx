@@ -1,10 +1,6 @@
-import { removeDestinationFromPath, setCurrentDestinationIndex } from '../services/socketService'
+import { removeDestinationFromPath } from '../services/socketService'
 
 function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDestination, onExport }) {
-  const handleSetCurrent = (index) => {
-    setCurrentDestinationIndex(index)
-  }
-
   const handleRemove = (index) => {
     if (window.confirm('Are you sure you want to remove this destination?')) {
       removeDestinationFromPath(index)
@@ -34,7 +30,7 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
             className={`destination-item ${index === currentDestinationIndex ? 'current' : ''} ${index < currentDestinationIndex ? 'visited' : ''}`}
           >
             <div className="destination-number">
-              {index < currentDestinationIndex ? '✓' : index + 1}
+              {index + 1}
             </div>
             <div className="destination-info">
               <div className="destination-coords">
@@ -47,15 +43,6 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
             <div className="destination-actions">
               {index === currentDestinationIndex && (
                 <span className="current-badge">Current</span>
-              )}
-              {index > currentDestinationIndex && (
-                <button
-                  className="btn-action"
-                  onClick={() => handleSetCurrent(index)}
-                  title="Set as current destination"
-                >
-                  →
-                </button>
               )}
               <button
                 className="btn-action btn-remove"
