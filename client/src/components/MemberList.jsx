@@ -5,6 +5,10 @@ function MemberList({ members }) {
     return timeSinceLastSeen < 60000 ? 'status-online' : 'status-offline'
   }
 
+  const isPhotoIcon = (icon) => {
+    return icon && icon.startsWith('data:image')
+  }
+
   return (
     <div className="member-list">
       <h3>👥 Group Members</h3>
@@ -15,7 +19,11 @@ function MemberList({ members }) {
               className="member-icon"
               style={{ backgroundColor: member.color }}
             >
-              {member.icon}
+              {isPhotoIcon(member.icon) ? (
+                <img src={member.icon} alt={member.name} className="member-photo" />
+              ) : (
+                member.icon
+              )}
             </div>
             <div className="member-info">
               <div className="member-name">

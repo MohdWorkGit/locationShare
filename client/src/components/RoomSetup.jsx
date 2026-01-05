@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createRoom, joinRoom } from '../services/api'
 import ColorSelector from './ColorSelector'
 import IconSelector from './IconSelector'
+import PhotoUpload from './PhotoUpload'
 import Notification from './Notification'
 
 const LEADER_ICONS = ['👑', '🚀', '⭐', '🎯']
@@ -13,6 +14,7 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
   const [roomCode, setRoomCode] = useState('')
   const [selectedColor, setSelectedColor] = useState('#3498db')
   const [selectedIcon, setSelectedIcon] = useState('👑')
+  const [selectedPhoto, setSelectedPhoto] = useState(null)
   const [notification, setNotification] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -29,7 +31,8 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
 
     setLoading(true)
     try {
-      const result = await createRoom(name, selectedColor, selectedIcon)
+      const icon = selectedPhoto || selectedIcon
+      const result = await createRoom(name, selectedColor, icon)
       onRoomCreated(result.room, { ...result.room.users[0], id: result.userId })
       showNotification('Room created successfully!', 'success')
     } catch (error) {
@@ -47,7 +50,8 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
 
     setLoading(true)
     try {
-      const result = await joinRoom(roomCode.toUpperCase(), name, selectedColor, selectedIcon)
+      const icon = selectedPhoto || selectedIcon
+      const result = await joinRoom(roomCode.toUpperCase(), name, selectedColor, icon)
       const user = result.room.users.find(u => u.id === result.userId)
       onRoomJoined(result.room, user)
       showNotification('Joined room successfully!', 'success')
@@ -94,13 +98,23 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
       </div>
 
       <div className="form-group">
-        <label>Choose Your Icon</label>
-        <IconSelector
-          icons={LEADER_ICONS}
-          selectedIcon={selectedIcon}
-          onIconSelect={setSelectedIcon}
+        <label>Profile Photo or Icon</label>
+        <PhotoUpload
+          selectedPhoto={selectedPhoto}
+          onPhotoSelect={setSelectedPhoto}
         />
       </div>
+
+      {!selectedPhoto && (
+        <div className="form-group">
+          <label>Or Choose an Icon</label>
+          <IconSelector
+            icons={LEADER_ICONS}
+            selectedIcon={selectedIcon}
+            onIconSelect={setSelectedIcon}
+          />
+        </div>
+      )}
 
       <button className="btn" onClick={handleCreateRoom} disabled={loading}>
         {loading ? 'Creating...' : 'Create Room & Start Tracking'}
@@ -143,13 +157,23 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
       </div>
 
       <div className="form-group">
-        <label>Choose Your Icon</label>
-        <IconSelector
-          icons={MEMBER_ICONS}
-          selectedIcon={selectedIcon}
-          onIconSelect={setSelectedIcon}
+        <label>Profile Photo or Icon</label>
+        <PhotoUpload
+          selectedPhoto={selectedPhoto}
+          onPhotoSelect={setSelectedPhoto}
         />
       </div>
+
+      {!selectedPhoto && (
+        <div className="form-group">
+          <label>Or Choose an Icon</label>
+          <IconSelector
+            icons={MEMBER_ICONS}
+            selectedIcon={selectedIcon}
+            onIconSelect={setSelectedIcon}
+          />
+        </div>
+      )}
 
       <button className="btn" onClick={handleJoinRoom} disabled={loading}>
         {loading ? 'Joining...' : 'Join Room & Start Tracking'}

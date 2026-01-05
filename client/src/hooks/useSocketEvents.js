@@ -8,10 +8,12 @@ import {
   onDestinationSet,
   onDestinationAssigned,
   onDestinationRemoved,
-  onLocationHistory
+  onLocationHistory,
+  onDestinationPathUpdated,
+  onCurrentDestinationUpdated
 } from '../services/socketService'
 
-export function useSocketEvents(roomCode, userId, members, setMembers, showNotification) {
+export function useSocketEvents(roomCode, userId, members, setMembers, setDestinationPath, setCurrentDestinationIndex, showNotification) {
   useEffect(() => {
     // Join the room
     joinSocketRoom(roomCode, userId)
@@ -135,6 +137,31 @@ export function useSocketEvents(roomCode, userId, members, setMembers, showNotif
       }
     }
 
+    // Handle destination path updated
+    const handleDestinationPathUpdated = (data) => {
+      console.log('Destination path updated:', data)
+      if (data.destinationPath !== undefined) {
+        setDestinationPath(data.destinationPath)
+      }
+      if (data.currentDestinationIndex !== undefined) {
+        setCurrentDestinationIndex(data.currentDestinationIndex)
+      }
+      if (data.message) {
+        showNotification(data.message, 'info')
+      }
+    }
+
+    // Handle current destination updated
+    const handleCurrentDestinationUpdated = (data) => {
+      console.log('Current destination updated:', data)
+      if (data.currentDestinationIndex !== undefined) {
+        setCurrentDestinationIndex(data.currentDestinationIndex)
+      }
+      if (data.message) {
+        showNotification(data.message, 'info')
+      }
+    }
+
     // Register event listeners
     onRoomState(handleRoomState)
     onUserJoined(handleUserJoined)
@@ -144,6 +171,8 @@ export function useSocketEvents(roomCode, userId, members, setMembers, showNotif
     onDestinationAssigned(handleDestinationAssigned)
     onDestinationRemoved(handleDestinationRemoved)
     onLocationHistory(handleLocationHistory)
+    onDestinationPathUpdated(handleDestinationPathUpdated)
+    onCurrentDestinationUpdated(handleCurrentDestinationUpdated)
 
     // Cleanup function
     return () => {

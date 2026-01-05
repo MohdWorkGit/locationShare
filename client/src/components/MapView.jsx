@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { setDestination } from '../services/socketService'
+import { addDestinationToPath } from '../services/socketService'
 import 'leaflet/dist/leaflet.css'
 
-function MapClickHandler({ isLeader, selectedMember, onMapClick }) {
+function MapClickHandler({ isLeader, onMapClick }) {
   useMapEvents({
     click: (e) => {
-      if (isLeader && selectedMember) {
+      if (isLeader) {
         onMapClick(e.latlng)
       }
     }
@@ -15,7 +15,7 @@ function MapClickHandler({ isLeader, selectedMember, onMapClick }) {
   return null
 }
 
-function MapView({ members, currentUserId, isLeader, selectedMember, pathsVisible }) {
+function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex }) {
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
@@ -31,28 +31,41 @@ function MapView({ members, currentUserId, isLeader, selectedMember, pathsVisibl
   }, [members, currentUserId, hasSetInitialView])
 
   const handleMapClick = (latlng) => {
-    if (isLeader && selectedMember) {
-      setDestination(selectedMember, { lat: latlng.lat, lng: latlng.lng })
+    if (isLeader) {
+      addDestinationToPath({ lat: latlng.lat, lng: latlng.lng })
     }
   }
 
+  const isPhotoIcon = (icon) => {
+    return icon && icon.startsWith('data:image')
+  }
+
   const createCustomIcon = (member) => {
+    const iconContent = isPhotoIcon(member.icon)
+      ? `<img src="${member.icon}" alt="${member.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
+      : member.icon
+
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div class="member-icon" style="background-color: ${member.color}; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold;">
-        ${member.icon}
+      html: `<div class="member-icon" style="background-color: ${member.color}; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; overflow: hidden;">
+        ${iconContent}
       </div>`,
       iconSize: [40, 40],
       iconAnchor: [20, 20]
     })
   }
 
-  const createDestinationIcon = () => {
+  const createDestinationIcon = (number, isCurrent, isVisited) => {
+    const bgColor = isVisited ? '#4caf50' : isCurrent ? '#ff9800' : '#ff6b6b'
+    const content = isVisited ? '✓' : number
+
     return L.divIcon({
       className: 'destination-marker',
-      html: `<div style="background: #ff6b6b; color: white; border: 3px solid white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍</div>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
+      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 16px;">
+        ${content}
+      </div>`,
+      iconSize: [35, 35],
+      iconAnchor: [17.5, 17.5]
     })
   }
 
@@ -70,7 +83,6 @@ function MapView({ members, currentUserId, isLeader, selectedMember, pathsVisibl
 
         <MapClickHandler
           isLeader={isLeader}
-          selectedMember={selectedMember}
           onMapClick={handleMapClick}
         />
 
@@ -96,24 +108,41 @@ function MapView({ members, currentUserId, isLeader, selectedMember, pathsVisibl
           )
         })}
 
-        {Object.values(members).map(member => {
-          if (!member.destination) return null
-
-          const { lat, lng } = member.destination
-          const icon = createDestinationIcon()
+        {/* Destination Path Markers */}
+        {destinationPath && destinationPath.map((dest, index) => {
+          const isCurrent = index === currentDestinationIndex
+          const isVisited = index < currentDestinationIndex
+          const icon = createDestinationIcon(index + 1, isCurrent, isVisited)
 
           return (
             <Marker
-              key={`dest-${member.id}`}
-              position={[lat, lng]}
+              key={`dest-${index}`}
+              position={[dest.lat, dest.lng]}
               icon={icon}
             >
               <Popup>
-                <strong>Destination for {member.name}</strong>
+                <strong>Destination {index + 1}</strong>
+                {isCurrent && <><br /><span style="color: #ff9800;">Current Destination</span></>}
+                {isVisited && <><br /><span style="color: #4caf50;">Completed</span></>}
+                <br />
+                <small>{dest.lat.toFixed(5)}, {dest.lng.toFixed(5)}</small>
+                <br />
+                <small>Added: {new Date(dest.addedAt).toLocaleTimeString()}</small>
               </Popup>
             </Marker>
           )
         })}
+
+        {/* Destination Path Polyline */}
+        {destinationPath && destinationPath.length > 1 && (
+          <Polyline
+            positions={destinationPath.map(d => [d.lat, d.lng])}
+            color="#2196F3"
+            weight={4}
+            opacity={0.8}
+            dashArray="10, 5"
+          />
+        )}
 
         {pathsVisible && Object.values(members).map(member => {
           if (!member.path || member.path.length < 2) return null

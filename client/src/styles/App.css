@@ -333,3 +333,277 @@
   background: transparent !important;
   border: none !important;
 }
+
+/* Photo Upload */
+.photo-upload {
+  margin-top: 10px;
+}
+
+.photo-preview {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.preview-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #667eea;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e74c3c;
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.remove-photo-btn:hover {
+  background: #c0392b;
+}
+
+.upload-placeholder {
+  width: 120px;
+  height: 120px;
+  border: 3px dashed #e1e5e9;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.upload-placeholder:hover {
+  border-color: #667eea;
+  background: #f8f9fa;
+}
+
+.upload-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.btn-upload {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.member-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Destination Path */
+.destination-path {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #e1e5e9;
+}
+
+.destination-path h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 20px;
+  font-style: italic;
+}
+
+.destination-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.destination-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 4px solid #ff6b6b;
+  transition: all 0.2s;
+}
+
+.destination-item.current {
+  background: #fff3e0;
+  border-left-color: #ff9800;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+}
+
+.destination-item.visited {
+  background: #e8f5e9;
+  border-left-color: #4caf50;
+  opacity: 0.7;
+}
+
+.destination-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff6b6b;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.destination-item.current .destination-number {
+  background: #ff9800;
+}
+
+.destination-item.visited .destination-number {
+  background: #4caf50;
+}
+
+.destination-info {
+  flex: 1;
+}
+
+.destination-coords {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.destination-time {
+  font-size: 11px;
+  color: #666;
+}
+
+.destination-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.current-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ff9800;
+  padding: 4px 8px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 4px;
+}
+
+.btn-action {
+  background: #667eea;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-action.btn-remove {
+  background: #e74c3c;
+}
+
+.btn-action.btn-remove:hover {
+  background: #c0392b;
+}
+
+.export-controls {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #e1e5e9;
+}
+
+.export-controls h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.export-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn-export {
+  background: white;
+  border: 2px solid #667eea;
+  color: #667eea;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-export:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}

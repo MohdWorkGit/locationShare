@@ -8,6 +8,10 @@ class Room {
     this.destinations = new Map();
     this.locationHistory = new Map();
 
+    // Global destination path for all users
+    this.destinationPath = [];
+    this.currentDestinationIndex = 0;
+
     // Add leader to room
     this.users.set(leaderId, {
       id: leaderId,
@@ -68,6 +72,48 @@ class Room {
     this.destinations.delete(userId);
   }
 
+  // Global destination path methods
+  addDestinationToPath(destination) {
+    this.destinationPath.push({
+      ...destination,
+      addedAt: new Date(),
+      order: this.destinationPath.length
+    });
+    return this.destinationPath.length - 1;
+  }
+
+  removeDestinationFromPath(index) {
+    if (index >= 0 && index < this.destinationPath.length) {
+      this.destinationPath.splice(index, 1);
+      // Reorder remaining destinations
+      this.destinationPath.forEach((dest, i) => {
+        dest.order = i;
+      });
+    }
+  }
+
+  clearDestinationPath() {
+    this.destinationPath = [];
+    this.currentDestinationIndex = 0;
+  }
+
+  getDestinationPath() {
+    return this.destinationPath;
+  }
+
+  setCurrentDestinationIndex(index) {
+    if (index >= 0 && index < this.destinationPath.length) {
+      this.currentDestinationIndex = index;
+    }
+  }
+
+  getCurrentDestination() {
+    if (this.currentDestinationIndex < this.destinationPath.length) {
+      return this.destinationPath[this.currentDestinationIndex];
+    }
+    return null;
+  }
+
   getUser(userId) {
     return this.users.get(userId);
   }
@@ -95,6 +141,8 @@ class Room {
       code: this.code,
       leaderId: this.leaderId,
       createdAt: this.createdAt,
+      destinationPath: this.destinationPath,
+      currentDestinationIndex: this.currentDestinationIndex,
       users: Array.from(this.users.entries()).map(([id, user]) => ({
         id,
         ...user,
