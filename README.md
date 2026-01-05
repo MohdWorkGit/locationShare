@@ -1,0 +1,199 @@
+# Live Location Tracker
+
+A real-time group coordination and location tracking web application built with React.js and Node.js.
+
+## Features
+
+- **Room-Based System**: Create tracking rooms with auto-generated codes
+- **Leader/Member Roles**: Designated leader can coordinate and monitor team members
+- **Real-Time Location Tracking**: HTML5 Geolocation + WebSocket updates
+- **Interactive Map**: Leaflet.js powered map with custom markers
+- **Path Tracking**: Records and displays movement history
+- **Member Management**: Custom names, colors, icons, and online status
+- **Destination Assignment**: Leaders can assign destinations to members
+
+## Tech Stack
+
+### Frontend
+- React.js 18.x
+- React Leaflet for mapping
+- Socket.IO client for real-time communication
+- Vite for build tooling
+- Axios for API calls
+
+### Backend
+- Node.js with Express.js
+- Socket.IO for WebSocket connections
+- In-memory storage (can be extended to use database)
+
+## Project Structure
+
+```
+locationShare/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── services/      # API and Socket services
+│   │   └── styles/        # CSS files
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── server/                # Node.js backend
+│   ├── src/
+│   │   ├── controllers/   # Request handlers
+│   │   ├── models/        # Data models
+│   │   ├── routes/        # API routes
+│   │   ├── socket/        # Socket.IO handlers
+│   │   └── server.js      # Main server file
+│   └── package.json
+└── README.md
+```
+
+## Installation
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd locationShare
+   ```
+
+2. **Install server dependencies**
+   ```bash
+   cd server
+   npm install
+   ```
+
+3. **Install client dependencies**
+   ```bash
+   cd ../client
+   npm install
+   ```
+
+## Running the Application
+
+### Development Mode
+
+1. **Start the backend server** (Terminal 1)
+   ```bash
+   cd server
+   npm run dev
+   ```
+   Server will run on http://localhost:5000
+
+2. **Start the frontend** (Terminal 2)
+   ```bash
+   cd client
+   npm run dev
+   ```
+   Client will run on http://localhost:3000
+
+3. **Access the application**
+   Open your browser and navigate to http://localhost:3000
+
+## Usage
+
+### Creating a Room (Leader)
+1. Click "Create New Room (Leader)"
+2. Enter your name
+3. Choose your color and icon
+4. Click "Create Room & Start Tracking"
+5. Share the generated room code with team members
+
+### Joining a Room (Member)
+1. Click "Join Existing Room"
+2. Enter the room code provided by the leader
+3. Enter your name
+4. Choose your color and icon
+5. Click "Join Room & Start Tracking"
+
+### Leader Features
+- View all member locations in real-time
+- Assign destinations by selecting a member and clicking on the map
+- Toggle path history visibility
+- Clear all path history
+
+### Permissions
+The application requires location permissions to track your position. Make sure to allow location access when prompted by your browser.
+
+## API Endpoints
+
+### REST API
+- `POST /api/rooms` - Create a new room
+- `POST /api/rooms/:roomCode/join` - Join an existing room
+- `GET /api/rooms/:roomCode` - Get room details
+- `POST /api/rooms/:roomCode/leave` - Leave a room
+
+### Socket.IO Events
+
+#### Client to Server
+- `join-room` - Join a room via socket
+- `location-update` - Send location update
+- `set-destination` - Set destination for a member (leader only)
+- `remove-destination` - Remove destination (leader only)
+- `get-location-history` - Request location history
+
+#### Server to Client
+- `room-state` - Current room state
+- `user-joined` - New user joined notification
+- `user-left` - User left notification
+- `location-updated` - Location update from another user
+- `destination-set` - Destination assigned notification
+- `destination-assigned` - Personal destination assignment
+- `destination-removed` - Destination removed notification
+- `location-history` - Historical location data
+
+## Production Build
+
+### Build the frontend
+```bash
+cd client
+npm run build
+```
+
+### Build output will be in `client/dist`
+
+### Serve the production build
+You can serve the built frontend using the backend server or any static file server.
+
+## Environment Variables
+
+### Server
+Create a `.env` file in the server directory:
+```
+PORT=5000
+NODE_ENV=production
+```
+
+### Client
+Vite uses `.env` files. Create `.env.production` in the client directory:
+```
+VITE_API_URL=https://your-api-url.com
+VITE_SOCKET_URL=https://your-socket-url.com
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+MIT License - feel free to use this project for your own purposes.
+
+## Acknowledgments
+
+- [Leaflet.js](https://leafletjs.com/) for the mapping library
+- [Socket.IO](https://socket.io/) for real-time communication
+- [OpenStreetMap](https://www.openstreetmap.org/) for map tiles
+- [React](https://react.dev/) for the frontend framework
+- [Express.js](https://expressjs.com/) for the backend framework
