@@ -23,20 +23,40 @@ function setupSocketHandlers(io) {
         // Send current room state to the user
         socket.emit('room-state', { room: room.toJSON() });
 
-        // Notify others in the room
+        // Check if this is a reconnection or new join
         const user = room.getUser(userId);
-        if (user && !user.isLeader) {
-          socket.to(roomCode).emit('user-joined', {
-            userId: userId,
-            user: {
-              name: user.name,
-              color: user.color,
-              icon: user.icon
-            }
-          });
-        }
+        if (user) {
+          const wasOffline = !user.online;
 
-        console.log(`User ${userId} joined room ${roomCode}`);
+          // Mark user as online if they were offline
+          if (wasOffline) {
+            room.reconnectUser(userId);
+          }
+
+          // Notify others in the room
+          if (wasOffline) {
+            socket.to(roomCode).emit('user-reconnected', {
+              userId: userId,
+              user: {
+                name: user.name,
+                color: user.color,
+                icon: user.icon,
+                isLeader: user.isLeader
+              }
+            });
+            console.log(`User ${userId} (${user.name}) reconnected to room ${roomCode}`);
+          } else if (!user.isLeader) {
+            socket.to(roomCode).emit('user-joined', {
+              userId: userId,
+              user: {
+                name: user.name,
+                color: user.color,
+                icon: user.icon
+              }
+            });
+            console.log(`User ${userId} (${user.name}) joined room ${roomCode}`);
+          }
+        }
       } catch (error) {
         console.error('Error joining room:', error);
         socket.emit('error', { message: 'Failed to join room' });
@@ -370,20 +390,19 @@ function setupSocketHandlers(io) {
           if (room) {
             const user = room.getUser(userId);
 
-            // Notify others
-            socket.to(roomCode).emit('user-left', { userId: userId });
+            // Mark user as offline (keep their data for reconnection)
+            room.markUserOffline(userId);
 
-            // Remove user from room
-            room.removeUser(userId);
-            userRooms.delete(userId);
+            // Notify others that user went offline
+            socket.to(roomCode).emit('user-offline', {
+              userId: userId,
+              name: user?.name
+            });
 
-            // Delete room if empty or leader left
-            if (room.users.size === 0 || userId === room.leaderId) {
-              rooms.delete(roomCode);
-              console.log(`Room ${roomCode} deleted`);
-            }
+            console.log(`User ${userId} (${user?.name}) went offline in room ${roomCode}`);
 
-            console.log(`User ${userId} disconnected from room ${roomCode}`);
+            // Note: Don't delete room or remove user - they can reconnect
+            // Rooms will be cleaned up by periodic cleanup task if inactive too long
           }
         }
 
@@ -393,6 +412,22 @@ function setupSocketHandlers(io) {
       }
     });
   });
+
+  // Periodic cleanup of inactive rooms (run every hour)
+  setInterval(() => {
+    try {
+      const now = new Date();
+      for (const [roomCode, room] of rooms.entries()) {
+        // Delete rooms with no online users for more than 24 hours
+        if (room.shouldBeDeleted()) {
+          rooms.delete(roomCode);
+          console.log(`Cleaned up inactive room ${roomCode} (last activity: ${room.lastActivity})`);
+        }
+      }
+    } catch (error) {
+      console.error('Error during room cleanup:', error);
+    }
+  }, 60 * 60 * 1000); // Run every hour
 }
 
 module.exports = setupSocketHandlers;

@@ -3,6 +3,7 @@ class Room {
     this.code = code;
     this.leaderId = leaderId;
     this.createdAt = new Date();
+    this.lastActivity = new Date();
     this.users = new Map();
     this.locations = new Map();
     this.destinations = new Map();
@@ -17,7 +18,8 @@ class Room {
       id: leaderId,
       ...leaderData,
       isLeader: true,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      online: true
     });
   }
 
@@ -26,16 +28,65 @@ class Room {
       id: userId,
       ...userData,
       isLeader: false,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      online: true
     });
     this.locationHistory.set(userId, []);
+    this.lastActivity = new Date();
   }
 
+  // Find user by name (for reconnection)
+  findUserByName(name) {
+    for (const [userId, user] of this.users.entries()) {
+      if (user.name === name) {
+        return { userId, user };
+      }
+    }
+    return null;
+  }
+
+  // Reconnect existing user
+  reconnectUser(userId, newSocketId) {
+    const user = this.users.get(userId);
+    if (user) {
+      user.online = true;
+      user.reconnectedAt = new Date();
+      this.lastActivity = new Date();
+      return true;
+    }
+    return false;
+  }
+
+  // Mark user as offline (instead of removing)
+  markUserOffline(userId) {
+    const user = this.users.get(userId);
+    if (user) {
+      user.online = false;
+      user.disconnectedAt = new Date();
+      this.lastActivity = new Date();
+    }
+  }
+
+  // Remove user completely (for cleanup)
   removeUser(userId) {
     this.users.delete(userId);
     this.locations.delete(userId);
     this.destinations.delete(userId);
     this.locationHistory.delete(userId);
+  }
+
+  // Get online users count
+  getOnlineUsersCount() {
+    return Array.from(this.users.values()).filter(u => u.online).length;
+  }
+
+  // Check if room should be deleted (no online users for extended period)
+  shouldBeDeleted(inactiveTimeMs = 24 * 60 * 60 * 1000) { // 24 hours default
+    const onlineUsers = this.getOnlineUsersCount();
+    if (onlineUsers > 0) return false;
+
+    const now = new Date();
+    return (now - this.lastActivity) > inactiveTimeMs;
   }
 
   updateLocation(userId, location) {
