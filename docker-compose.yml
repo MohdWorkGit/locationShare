@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # Backend server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: location-tracker-server
+    ports:
+      - "5000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - location-tracker-network
+
+  # Frontend client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: location-tracker-client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - location-tracker-network
+
+networks:
+  location-tracker-network:
+    driver: bridge
