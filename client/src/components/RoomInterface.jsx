@@ -85,7 +85,9 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
 
   const handleExport = async (format) => {
     try {
-      const url = `http://localhost:5000/api/rooms/${room.code}/export?format=${format}`
+      // Construct API URL using environment variable or relative URL
+      const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin
+      const url = `${apiBaseUrl}/api/rooms/${room.code}/export?format=${format}`
       window.open(url, '_blank')
       showNotification(`Exporting route as ${format.toUpperCase()}...`, 'success')
     } catch (error) {

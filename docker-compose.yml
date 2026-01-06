@@ -21,6 +21,12 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+      args:
+        # Pass build-time environment variables
+        # Leave empty to use nginx proxy (recommended for single-domain deployment)
+        # Set these for separate frontend/backend domains
+        - VITE_API_URL=${VITE_API_URL:-}
+        - VITE_SOCKET_URL=${VITE_SOCKET_URL:-}
     container_name: location-tracker-client
     ports:
       - "80:80"

@@ -9,18 +9,76 @@ This guide explains how to run the Live Location Tracker application using Docke
 
 ## Quick Start
 
-1. **Build and start the application:**
+1. **Configure environment variables (optional):**
+   ```bash
+   # Copy the example env file
+   cp .env.example .env
+
+   # Edit .env and set your domain if needed
+   # Leave VITE_API_URL and VITE_SOCKET_URL empty for single-domain deployment
+   ```
+
+2. **Build and start the application:**
    ```bash
    docker-compose up -d
    ```
 
-2. **Access the application:**
+3. **Access the application:**
    - Frontend: http://localhost
    - Backend API: http://localhost:5000
 
-3. **Stop the application:**
+4. **Stop the application:**
    ```bash
    docker-compose down
+   ```
+
+## Environment Configuration
+
+### Single Domain Deployment (Default - Recommended)
+
+By default, the application uses **nginx as a reverse proxy**. The frontend and backend communicate through the same domain, which simplifies deployment.
+
+**No configuration needed** - just run `docker-compose up -d`
+
+How it works:
+- Frontend: `http://yourdomain.com` → Nginx serves React app
+- API calls: `http://yourdomain.com/api` → Nginx proxies to backend
+- WebSocket: `http://yourdomain.com/socket.io` → Nginx proxies to backend
+
+### Separate Domain Deployment (Advanced)
+
+If you deploy frontend and backend on **different domains**, configure the `.env` file:
+
+```bash
+# .env file
+VITE_API_URL=https://api.yourdomain.com
+VITE_SOCKET_URL=https://api.yourdomain.com
+```
+
+Then rebuild:
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### Environment Variables
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `VITE_API_URL` | Backend API URL | (empty - uses nginx proxy) | `https://api.example.com` |
+| `VITE_SOCKET_URL` | WebSocket URL | (empty - uses nginx proxy) | `https://api.example.com` |
+
+**Important:** When these variables are empty, the app uses relative URLs which work through the nginx proxy. This is the recommended setup for most deployments.
+
+### Changing Domain After Deployment
+
+If you need to change the domain configuration:
+
+1. **Edit the `.env` file** with your new settings
+2. **Rebuild only the frontend** (backend doesn't need rebuild):
+   ```bash
+   docker-compose build client
+   docker-compose up -d
    ```
 
 ## Docker Commands

@@ -105,22 +105,33 @@ See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
 
 ### Option 2: Development Mode
 
-1. **Start the backend server** (Terminal 1)
+1. **Configure environment (optional)**
+   ```bash
+   cd client
+   cp .env.example .env
+   # For development with separate servers, add:
+   # VITE_API_URL=http://localhost:5000
+   # VITE_SOCKET_URL=http://localhost:5000
+   ```
+
+2. **Start the backend server** (Terminal 1)
    ```bash
    cd server
    npm run dev
    ```
    Server will run on http://localhost:5000
 
-2. **Start the frontend** (Terminal 2)
+3. **Start the frontend** (Terminal 2)
    ```bash
    cd client
    npm run dev
    ```
    Client will run on http://localhost:3000
 
-3. **Access the application**
+4. **Access the application**
    Open your browser and navigate to http://localhost:3000
+
+**Note:** In development, Vite automatically proxies `/api` requests to `localhost:5000` (configured in `vite.config.js`), so you don't need to set environment variables unless you want to override this behavior.
 
 ## Usage
 
@@ -208,19 +219,43 @@ You can serve the built frontend using the backend server or any static file ser
 
 ## Environment Variables
 
-### Server
-Create a `.env` file in the server directory:
+### Docker Deployment
+For Docker, configure the `.env` file in the project root:
+```bash
+# Leave empty for single-domain deployment with nginx proxy (recommended)
+VITE_API_URL=
+VITE_SOCKET_URL=
+
+# OR set for separate frontend/backend domains
+VITE_API_URL=https://api.yourdomain.com
+VITE_SOCKET_URL=https://api.yourdomain.com
 ```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker configuration.
+
+### Development
+For local development, create `client/.env`:
+```bash
+# Optional - only needed if not using Vite's built-in proxy
+VITE_API_URL=http://localhost:5000
+VITE_SOCKET_URL=http://localhost:5000
+```
+
+### Server
+Optional `.env` file in the server directory:
+```bash
 PORT=5000
 NODE_ENV=production
 ```
 
-### Client
-Vite uses `.env` files. Create `.env.production` in the client directory:
-```
-VITE_API_URL=https://your-api-url.com
-VITE_SOCKET_URL=https://your-socket-url.com
-```
+### Available Client Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_API_URL` | Backend API base URL (without `/api` suffix) | No |
+| `VITE_SOCKET_URL` | WebSocket/Socket.IO server URL | No |
+
+**Default behavior:** When not set, the app uses relative URLs which work through nginx proxy or Vite's dev proxy.
 
 ## Contributing
 
