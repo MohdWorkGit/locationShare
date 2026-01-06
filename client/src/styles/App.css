@@ -424,6 +424,8 @@
 .destination-marker {
   background: transparent !important;
   border: none !important;
+  pointer-events: none !important;
+  cursor: default !important;
 }
 
 /* Photo Upload */
