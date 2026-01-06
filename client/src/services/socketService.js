@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client'
 
-const SOCKET_URL = 'http://localhost:5000'
+// Use environment variable or undefined for same-origin connection (nginx proxy)
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined
 let socket = null
 
 export const initializeSocket = () => {
