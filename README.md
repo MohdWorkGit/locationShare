@@ -248,7 +248,9 @@ PORT=5000
 NODE_ENV=production
 ```
 
-### Available Client Environment Variables
+### Available Environment Variables
+
+#### Client (Frontend)
 
 | Variable | Description | Required |
 |----------|-------------|----------|
@@ -256,6 +258,16 @@ NODE_ENV=production
 | `VITE_SOCKET_URL` | WebSocket/Socket.IO server URL | No |
 
 **Default behavior:** When not set, the app uses relative URLs which work through nginx proxy or Vite's dev proxy.
+
+#### Server (Backend)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server port | `5000` |
+| `NODE_ENV` | Environment mode | `development` |
+| `CORS_ORIGIN` | Allowed CORS origins (comma-separated) | `http://localhost:3000,http://localhost:5173,http://localhost` |
+
+For Docker deployment, set `CORS_ORIGIN=*` to allow all origins (recommended with nginx proxy).
 
 ## Contributing
 
