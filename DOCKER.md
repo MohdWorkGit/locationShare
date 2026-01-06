@@ -67,8 +67,28 @@ docker-compose up -d --build
 |----------|-------------|---------|---------|
 | `VITE_API_URL` | Backend API URL | (empty - uses nginx proxy) | `https://api.example.com` |
 | `VITE_SOCKET_URL` | WebSocket URL | (empty - uses nginx proxy) | `https://api.example.com` |
+| `CORS_ORIGIN` | Allowed CORS origins (comma-separated) | `*` (allow all) | `https://yourdomain.com,https://www.yourdomain.com` |
 
 **Important:** When these variables are empty, the app uses relative URLs which work through the nginx proxy. This is the recommended setup for most deployments.
+
+### CORS Configuration
+
+By default, the backend allows requests from all origins (`CORS_ORIGIN=*`), which works perfectly with the nginx proxy setup.
+
+For **production with specific domains**, you should restrict CORS:
+
+```bash
+# .env file
+CORS_ORIGIN=https://yourdomain.com,https://www.yourdomain.com
+```
+
+Then restart:
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+**Note:** No need to rebuild - CORS_ORIGIN is a runtime environment variable.
 
 ### Changing Domain After Deployment
 

@@ -12,6 +12,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      # Allow all origins for nginx proxy setup
+      # For production with separate domains, set CORS_ORIGIN in .env
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
     restart: unless-stopped
     networks:
       - location-tracker-network
