@@ -90,7 +90,20 @@ locationShare/
 
 ## Running the Application
 
-### Development Mode
+### Option 1: Docker (Recommended)
+
+The easiest way to run the application is using Docker:
+
+```bash
+# Build and start both frontend and backend
+docker-compose up -d
+
+# Access the application at http://localhost
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker documentation.
+
+### Option 2: Development Mode
 
 1. **Start the backend server** (Terminal 1)
    ```bash
