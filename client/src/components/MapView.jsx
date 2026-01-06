@@ -58,7 +58,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const createDestinationIcon = (number, isCurrent, isVisited, leaderIcon) => {
     const bgColor = isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b'
-    let content = number // Always show number for old destinations
+    let content = '' // No content for old destinations - just empty markers
 
     // Use leader's icon/photo ONLY for current destination
     if (isCurrent && leaderIcon) {
@@ -68,7 +68,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         : leaderIcon
     }
 
-    const size = isCurrent ? 50 : 35
+    const size = isCurrent ? 50 : 20
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 

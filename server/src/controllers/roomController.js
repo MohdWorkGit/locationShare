@@ -13,12 +13,34 @@ const roomController = {
   // Create a new room
   createRoom: (req, res) => {
     try {
-      const { name, color, icon } = req.body;
+      const { name, color, icon, roomCode: requestedRoomCode } = req.body;
 
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
       }
 
+      // Check if trying to reconnect to existing room
+      if (requestedRoomCode) {
+        const existingRoom = rooms.get(requestedRoomCode);
+        if (existingRoom) {
+          // Check if user with same name exists (leader reconnection)
+          const existingUser = existingRoom.findUserByName(name);
+          if (existingUser && existingUser.user.isLeader) {
+            // Reconnect as leader
+            existingRoom.reconnectUser(existingUser.userId);
+            userRooms.set(existingUser.userId, requestedRoomCode);
+
+            return res.status(200).json({
+              success: true,
+              reconnected: true,
+              room: existingRoom.toJSON(),
+              userId: existingUser.userId
+            });
+          }
+        }
+      }
+
+      // Create new room
       const roomCode = generateRoomCode();
       const leaderId = uuidv4();
 
@@ -52,6 +74,22 @@ const roomController = {
         return res.status(404).json({ error: 'Room not found' });
       }
 
+      // Check if user with same name already exists (reconnection)
+      const existingUser = room.findUserByName(name);
+      if (existingUser) {
+        // Reconnect existing user
+        room.reconnectUser(existingUser.userId);
+        userRooms.set(existingUser.userId, roomCode);
+
+        return res.status(200).json({
+          success: true,
+          reconnected: true,
+          room: room.toJSON(),
+          userId: existingUser.userId
+        });
+      }
+
+      // Add new user
       const userId = uuidv4();
       room.addUser(userId, { name, color, icon });
       userRooms.set(userId, roomCode);
