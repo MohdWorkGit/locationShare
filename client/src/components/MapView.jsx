@@ -162,17 +162,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               key={`dest-${index}`}
               position={[dest.lat, dest.lng]}
               icon={icon}
-            >
-              <Popup>
-                <strong>Destination {index + 1}</strong>
-                {isCurrent && <><br /><span style="color: #ff9800;">Current Destination</span></>}
-                {isVisited && <><br /><span style="color: #4caf50;">Completed</span></>}
-                <br />
-                <small>{dest.lat.toFixed(5)}, {dest.lng.toFixed(5)}</small>
-                <br />
-                <small>Added: {new Date(dest.addedAt).toLocaleTimeString()}</small>
-              </Popup>
-            </Marker>
+              eventHandlers={{}}
+              interactive={false}
+            />
           )
         })}
 
