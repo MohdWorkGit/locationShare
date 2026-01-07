@@ -1,7 +1,10 @@
 class Room {
-  constructor(code, leaderId, leaderData) {
+  constructor(code, leaderId, leaderData, options = {}) {
     this.code = code;
-    this.leaderId = leaderId;
+    this.leaderIds = new Set([leaderId]); // Support multiple leaders
+    this.isAdminCreated = options.isAdminCreated || false;
+    this.isPublic = options.isPublic || false;
+    this.roomName = options.roomName || `Room ${code}`;
     this.createdAt = new Date();
     this.lastActivity = new Date();
     this.users = new Map();
@@ -13,7 +16,7 @@ class Room {
     this.destinationPath = [];
     this.currentDestinationIndex = 0;
 
-    // Add leader to room
+    // Add initial leader to room
     this.users.set(leaderId, {
       id: leaderId,
       ...leaderData,
@@ -21,6 +24,40 @@ class Room {
       joinedAt: new Date(),
       online: true
     });
+  }
+
+  // Check if user is a leader
+  isLeader(userId) {
+    return this.leaderIds.has(userId);
+  }
+
+  // Add a leader to the room
+  addLeader(userId) {
+    this.leaderIds.add(userId);
+    const user = this.users.get(userId);
+    if (user) {
+      user.isLeader = true;
+    }
+    this.lastActivity = new Date();
+  }
+
+  // Remove a leader from the room
+  removeLeader(userId) {
+    if (this.leaderIds.size > 1) { // Keep at least one leader
+      this.leaderIds.delete(userId);
+      const user = this.users.get(userId);
+      if (user) {
+        user.isLeader = false;
+      }
+      this.lastActivity = new Date();
+      return true;
+    }
+    return false;
+  }
+
+  // Get all leader IDs
+  getLeaderIds() {
+    return Array.from(this.leaderIds);
   }
 
   addUser(userId, userData) {
@@ -193,7 +230,10 @@ class Room {
   toJSON() {
     return {
       code: this.code,
-      leaderId: this.leaderId,
+      leaderIds: Array.from(this.leaderIds),
+      isAdminCreated: this.isAdminCreated,
+      isPublic: this.isPublic,
+      roomName: this.roomName,
       createdAt: this.createdAt,
       destinationPath: this.destinationPath,
       currentDestinationIndex: this.currentDestinationIndex,
