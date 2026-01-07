@@ -43,6 +43,10 @@ function MainApp() {
     setCurrentRoom(room)
     setCurrentUser(user)
     setIsLeader(false)
+    if(user.isLeader){
+       setIsLeader(true)
+    }
+   
   }
 
   const handleLeaveRoom = () => {
@@ -54,13 +58,13 @@ function MainApp() {
   return (
     <div className="app">
       {/* Language Toggle Button */}
-      <button
+      {/* <button
         className="language-toggle"
         onClick={toggleLanguage}
         title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
       >
         {language === 'en' ? 'عربي' : 'English'}
-      </button>
+      </button> */}
 
       <div className={`container ${currentRoom ? 'no-header' : ''}`}>
         {!currentRoom && (

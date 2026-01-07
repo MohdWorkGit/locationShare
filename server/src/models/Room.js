@@ -144,7 +144,7 @@ class Room {
     });
 
     // Keep only last 50 locations
-    if (history.length > 50) {
+    if (history.length > 50000) {
       this.locationHistory.set(userId, history.slice(-50));
     }
   }
