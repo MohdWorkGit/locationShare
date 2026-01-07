@@ -26,7 +26,7 @@ function MapController({ mapRef }) {
   return null
 }
 
-function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex, sidebarCollapsed }) {
+function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex, sidebarCollapsed, editDestinationTrigger }) {
   const { t } = useLanguage()
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
@@ -40,6 +40,13 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [destinationSize, setDestinationSize] = useState('medium')
   const mapRef = useRef(null)
   const longPressTimerRef = useRef(null)
+
+  // Watch for external edit triggers (from destination list)
+  useEffect(() => {
+    if (editDestinationTrigger && editDestinationTrigger.index !== null) {
+      openEditModal(editDestinationTrigger.index)
+    }
+  }, [editDestinationTrigger])
 
   // Invalidate map size when sidebar toggles
   useEffect(() => {
@@ -85,15 +92,36 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
-      // Add destination immediately with default values (small dot)
+      // Add destination immediately with default values
+      // Don't set size - let it be determined by current/visited status
       addDestinationToPath({
         lat: latlng.lat,
         lng: latlng.lng,
         note: '',
-        color: '#ff6b6b',
-        size: 20  // Default to small dot like before
+        color: ''  // Empty color means use default colors based on status
       })
     }
+  }
+
+  const openEditModal = (index) => {
+    const dest = destinationPath[index]
+    const isCurrent = index === currentDestinationIndex
+
+    const sizeToOption = (size) => {
+      // If no custom size, determine based on current status
+      if (!size || size <= 0) {
+        return isCurrent ? 'large' : 'small'
+      }
+      if (size <= 35) return 'small'
+      if (size <= 60) return 'medium'
+      return 'large'
+    }
+
+    setEditingDestinationIndex(index)
+    setDestinationNote(dest.note || '')
+    setDestinationColor((dest.color && dest.color !== '') ? dest.color : '#ff6b6b')
+    setDestinationSize(sizeToOption(dest.size))
+    setShowDestinationModal(true)
   }
 
   const handleDestinationContextMenu = (index, e) => {
@@ -104,18 +132,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       e.originalEvent.preventDefault()
     }
 
-    const dest = destinationPath[index]
-    const sizeToOption = (size) => {
-      if (size <= 35) return 'small'
-      if (size <= 60) return 'medium'
-      return 'large'
-    }
-
-    setEditingDestinationIndex(index)
-    setDestinationNote(dest.note || '')
-    setDestinationColor(dest.color || '#ff6b6b')
-    setDestinationSize(sizeToOption(dest.size || 20))
-    setShowDestinationModal(true)
+    openEditModal(index)
   }
 
   const handleDestinationMouseDown = (index) => {
@@ -123,18 +140,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
     longPressTimerRef.current = setTimeout(() => {
       // Long press detected - open edit modal
-      const dest = destinationPath[index]
-      const sizeToOption = (size) => {
-        if (size <= 35) return 'small'
-        if (size <= 60) return 'medium'
-        return 'large'
-      }
-
-      setEditingDestinationIndex(index)
-      setDestinationNote(dest.note || '')
-      setDestinationColor(dest.color || '#ff6b6b')
-      setDestinationSize(sizeToOption(dest.size || 20))
-      setShowDestinationModal(true)
+      openEditModal(index)
     }, 500) // 500ms for long press
   }
 
@@ -225,8 +231,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const createDestinationIcon = (dest, number, isCurrent, isVisited, leaderIcon) => {
     // Use custom color if provided, otherwise use default colors
-    const customColor = dest.color
-    const bgColor = customColor || (isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b')
+    const hasCustomColor = dest.color && dest.color !== ''
+    const bgColor = hasCustomColor ? dest.color : (isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b')
     let content = '' // No content for old destinations - just empty markers
 
     // Use leader's icon/photo ONLY for current destination
@@ -237,15 +243,15 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         : leaderIcon
     }
 
-    // Use custom size if provided, otherwise use default sizing
-    const customSize = dest.size
-    const size = customSize || (isCurrent ? 50 : 20)
+    // Use custom size if provided and valid, otherwise use default sizing based on status
+    const hasCustomSize = dest.size && dest.size > 0
+    const size = hasCustomSize ? dest.size : (isCurrent ? 50 : 15)  // Current: 50px, Visited: 15px
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 
     return L.divIcon({
       className: 'destination-marker',
-      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: ${isCurrent ? '24px' : '16px'}; overflow: hidden;">
+      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: ${isCurrent ? '24px' : '12px'}; overflow: hidden;">
         ${content}
       </div>`,
       iconSize: iconSize,

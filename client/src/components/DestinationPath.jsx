@@ -1,7 +1,7 @@
 import { removeDestinationFromPath } from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
 
-function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDestination, onExport }) {
+function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDestination, onExport, onEditDestination }) {
   const { t } = useLanguage()
 
   const handleRemove = (index) => {
@@ -46,6 +46,15 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
             <div className="destination-actions">
               {index === currentDestinationIndex && (
                 <span className="current-badge">{t('leader.current')}</span>
+              )}
+              {onEditDestination && (
+                <button
+                  className="btn-action btn-edit"
+                  onClick={() => onEditDestination(index)}
+                  title={t('destinationPath.editDestination') || 'Edit destination'}
+                >
+                  ✏️
+                </button>
               )}
               <button
                 className="btn-action btn-remove"
