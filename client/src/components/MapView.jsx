@@ -32,7 +32,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
-  const [trackingMode, setTrackingMode] = useState('none') // 'none', 'user', 'destination'
+  const [trackingMode, setTrackingMode] = useState('user') // 'none', 'user', 'destination'
   const [showDestinationModal, setShowDestinationModal] = useState(false)
   const [editingDestinationIndex, setEditingDestinationIndex] = useState(null)
   const [destinationNote, setDestinationNote] = useState('')
