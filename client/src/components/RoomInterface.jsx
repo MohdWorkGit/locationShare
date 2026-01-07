@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import MapView from './MapView'
 import MemberList from './MemberList'
 import LeaderControls from './LeaderControls'
@@ -9,13 +9,19 @@ import { leaveRoom } from '../services/api'
 import { useLanguage } from '../contexts/LanguageContext'
 
 function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
-  const { t } = useLanguage()
+  const { t, isRTL } = useLanguage()
   const [members, setMembers] = useState({})
   const [pathsVisible, setPathsVisible] = useState(false)
   const [notification, setNotification] = useState(null)
   const [destinationPath, setDestinationPath] = useState([])
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem('sidebarWidth')
+    return saved ? parseInt(saved) : 400
+  })
+  const [isResizing, setIsResizing] = useState(false)
+  const sidebarRef = useRef(null)
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type })
@@ -25,6 +31,53 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed)
   }
+
+  const handleMouseDown = (e) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return
+
+      const minWidth = 300
+      const maxWidth = 800
+
+      let newWidth
+      if (isRTL) {
+        // RTL: sidebar is on the right, calculate from right edge
+        newWidth = window.innerWidth - e.clientX
+      } else {
+        // LTR: sidebar is on the left, calculate from left edge
+        newWidth = e.clientX
+      }
+
+      newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
+      setSidebarWidth(newWidth)
+    }
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false)
+        localStorage.setItem('sidebarWidth', sidebarWidth.toString())
+      }
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'ew-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing, sidebarWidth, isRTL])
 
   // Initialize members and destination path from room data
   useEffect(() => {
@@ -99,13 +152,24 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   }
 
   return (
-    <div className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div
+      className={`main-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
+      style={{
+        gridTemplateColumns: sidebarCollapsed
+          ? (isRTL ? '1fr 0' : '0 1fr')
+          : (isRTL ? `1fr ${sidebarWidth}px` : `${sidebarWidth}px 1fr`)
+      }}
+    >
       {/* Sidebar Toggle Button */}
       <button className="sidebar-toggle" onClick={toggleSidebar}>
         {sidebarCollapsed ? '☰' : '✕'}
       </button>
 
-      <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <div
+        ref={sidebarRef}
+        className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}
+        style={{ width: sidebarCollapsed ? 0 : `${sidebarWidth}px` }}
+      >
         <div className="room-info">
           <div><strong>{t('room.roomLabel')}:</strong> <span className="room-code">{room.code}</span></div>
           <div><strong>{t('room.role')}:</strong> {isLeader ? `${t('room.leader')} 👑` : t('room.member')}</div>
@@ -129,6 +193,14 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
             🚪 {t('room.leaveRoom')}
           </button>
         </div>
+
+        {/* Resize Handle */}
+        {!sidebarCollapsed && (
+          <div
+            className={`sidebar-resize-handle ${isRTL ? 'rtl' : 'ltr'}`}
+            onMouseDown={handleMouseDown}
+          />
+        )}
       </div>
 
       <MapView

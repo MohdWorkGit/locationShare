@@ -8,13 +8,7 @@
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
-[dir="rtl"] .main-content {
-  grid-template-columns: 1fr 400px;
-}
-
-[dir="rtl"] .main-content.sidebar-collapsed {
-  grid-template-columns: 1fr 0;
-}
+/* RTL grid columns are now set via inline styles in RoomInterface.jsx */
 
 [dir="rtl"] .sidebar.collapsed {
   transform: translateX(100%);
@@ -110,18 +104,16 @@
 
 .main-content {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  /* grid-template-columns set via inline styles for dynamic resizing */
   gap: 0;
   height: 100vh;
   flex: 1;
   position: relative;
-  transition: grid-template-columns 0.3s ease;
+  transition: grid-template-columns 0.15s ease;
   overflow: hidden;
 }
 
-.main-content.sidebar-collapsed {
-  grid-template-columns: 0 1fr;
-}
+/* sidebar-collapsed class columns set via inline styles */
 
 .sidebar {
   background: rgba(255, 255, 255, 0.95);
@@ -130,10 +122,11 @@
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   overflow-x: hidden;
-  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, padding 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
   z-index: 10;
   min-width: 0;
   position: relative;
+  /* width set via inline styles for dynamic resizing */
 }
 
 .sidebar.collapsed {
@@ -169,6 +162,63 @@
 .sidebar-toggle:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Sidebar Resize Handle */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 100;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.sidebar-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 40px;
+  background-color: rgba(102, 126, 234, 0.2);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-resize-handle.ltr {
+  right: 0;
+}
+
+.sidebar-resize-handle.ltr::before {
+  right: 2px;
+}
+
+.sidebar-resize-handle.rtl {
+  left: 0;
+}
+
+.sidebar-resize-handle.rtl::before {
+  left: 2px;
+}
+
+.sidebar-resize-handle:hover {
+  background-color: rgba(102, 126, 234, 0.15);
+}
+
+.sidebar-resize-handle:hover::before {
+  background-color: rgba(102, 126, 234, 0.6);
+  height: 60px;
+}
+
+.sidebar-resize-handle:active {
+  background-color: rgba(102, 126, 234, 0.25);
+}
+
+.sidebar-resize-handle:active::before {
+  background-color: rgba(102, 126, 234, 0.8);
 }
 
 .map-container {
