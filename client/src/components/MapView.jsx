@@ -85,15 +85,37 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
-      // Add destination immediately with default values
+      // Add destination immediately with default values (small dot)
       addDestinationToPath({
         lat: latlng.lat,
         lng: latlng.lng,
         note: '',
         color: '#ff6b6b',
-        size: 50
+        size: 20  // Default to small dot like before
       })
     }
+  }
+
+  const handleDestinationContextMenu = (index, e) => {
+    if (!isLeader) return
+
+    // Prevent default context menu
+    if (e && e.originalEvent) {
+      e.originalEvent.preventDefault()
+    }
+
+    const dest = destinationPath[index]
+    const sizeToOption = (size) => {
+      if (size <= 35) return 'small'
+      if (size <= 60) return 'medium'
+      return 'large'
+    }
+
+    setEditingDestinationIndex(index)
+    setDestinationNote(dest.note || '')
+    setDestinationColor(dest.color || '#ff6b6b')
+    setDestinationSize(sizeToOption(dest.size || 20))
+    setShowDestinationModal(true)
   }
 
   const handleDestinationMouseDown = (index) => {
@@ -111,7 +133,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       setEditingDestinationIndex(index)
       setDestinationNote(dest.note || '')
       setDestinationColor(dest.color || '#ff6b6b')
-      setDestinationSize(sizeToOption(dest.size || 50))
+      setDestinationSize(sizeToOption(dest.size || 20))
       setShowDestinationModal(true)
     }, 500) // 500ms for long press
   }
@@ -354,6 +376,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               position={[dest.lat, dest.lng]}
               icon={icon}
               eventHandlers={{
+                contextmenu: (e) => handleDestinationContextMenu(index, e),
                 mousedown: () => handleDestinationMouseDown(index),
                 mouseup: handleDestinationMouseUp,
                 mouseleave: handleDestinationMouseUp,
