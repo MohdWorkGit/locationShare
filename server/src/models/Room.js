@@ -163,7 +163,7 @@ class Room {
   // Global destination path methods
   addDestinationToPath(destination) {
     this.destinationPath.push({
-      ...destination,
+      ...destination, // lat, lng, note, color, size
       addedAt: new Date(),
       order: this.destinationPath.length
     });

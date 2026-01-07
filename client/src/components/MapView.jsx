@@ -33,6 +33,11 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
   const [trackingMode, setTrackingMode] = useState('none') // 'none', 'user', 'destination'
+  const [showDestinationModal, setShowDestinationModal] = useState(false)
+  const [pendingDestination, setPendingDestination] = useState(null)
+  const [destinationNote, setDestinationNote] = useState('')
+  const [destinationColor, setDestinationColor] = useState('#ff6b6b')
+  const [destinationSize, setDestinationSize] = useState('medium')
   const mapRef = useRef(null)
 
   // Invalidate map size when sidebar toggles
@@ -79,8 +84,37 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
-      addDestinationToPath({ lat: latlng.lat, lng: latlng.lng })
+      setPendingDestination({ lat: latlng.lat, lng: latlng.lng })
+      setShowDestinationModal(true)
+      setDestinationNote('')
+      setDestinationColor('#ff6b6b')
+      setDestinationSize('medium')
     }
+  }
+
+  const handleAddDestination = () => {
+    if (pendingDestination) {
+      const sizeMap = {
+        small: 30,
+        medium: 50,
+        large: 70
+      }
+      addDestinationToPath({
+        lat: pendingDestination.lat,
+        lng: pendingDestination.lng,
+        note: destinationNote.trim() || '',
+        color: destinationColor,
+        size: sizeMap[destinationSize] || 50
+      })
+      setShowDestinationModal(false)
+      setPendingDestination(null)
+    }
+  }
+
+  const handleCancelDestination = () => {
+    setShowDestinationModal(false)
+    setPendingDestination(null)
+    setDestinationNote('')
   }
 
   const handleZoomIn = () => {
@@ -134,8 +168,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     })
   }
 
-  const createDestinationIcon = (number, isCurrent, isVisited, leaderIcon) => {
-    const bgColor = isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b'
+  const createDestinationIcon = (dest, number, isCurrent, isVisited, leaderIcon) => {
+    // Use custom color if provided, otherwise use default colors
+    const customColor = dest.color
+    const bgColor = customColor || (isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b')
     let content = '' // No content for old destinations - just empty markers
 
     // Use leader's icon/photo ONLY for current destination
@@ -146,7 +182,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         : leaderIcon
     }
 
-    const size = isCurrent ? 50 : 20
+    // Use custom size if provided, otherwise use default sizing
+    const customSize = dest.size
+    const size = customSize || (isCurrent ? 50 : 20)
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 
@@ -275,16 +313,34 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           const isCurrent = index === currentDestinationIndex
           const isVisited = index < currentDestinationIndex
           const leaderIcon = getLeaderIcon()
-          const icon = createDestinationIcon(index + 1, isCurrent, isVisited, leaderIcon)
+          const icon = createDestinationIcon(dest, index + 1, isCurrent, isVisited, leaderIcon)
 
           return (
             <Marker
               key={`dest-${index}`}
               position={[dest.lat, dest.lng]}
               icon={icon}
-              eventHandlers={{}}
-              interactive={false}
-            />
+            >
+              {dest.note && (
+                <Popup>
+                  <div>
+                    <strong>📍 Destination {index + 1}</strong>
+                    <br />
+                    <div style={{ marginTop: '8px' }}>
+                      {dest.note}
+                    </div>
+                    {dest.addedAt && (
+                      <>
+                        <br />
+                        <small style={{ color: '#666' }}>
+                          {t('map.added')}: {new Date(dest.addedAt).toLocaleString()}
+                        </small>
+                      </>
+                    )}
+                  </div>
+                </Popup>
+              )}
+            </Marker>
           )
         })}
 
@@ -315,6 +371,73 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           )
         })}
       </MapContainer>
+
+      {/* Destination Details Modal */}
+      {showDestinationModal && (
+        <div className="modal-overlay" onClick={handleCancelDestination}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>📍 Add Destination</h3>
+
+            <div className="form-group">
+              <label>Note (optional)</label>
+              <textarea
+                value={destinationNote}
+                onChange={(e) => setDestinationNote(e.target.value)}
+                placeholder="Add a note for this destination..."
+                rows="3"
+                maxLength="200"
+              />
+              <small>{destinationNote.length}/200</small>
+            </div>
+
+            <div className="form-group">
+              <label>Marker Color</label>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={destinationColor}
+                  onChange={(e) => setDestinationColor(e.target.value)}
+                  style={{ width: '60px', height: '40px', cursor: 'pointer' }}
+                />
+                <span>{destinationColor}</span>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Marker Size</label>
+              <div className="size-options">
+                <button
+                  className={`size-option ${destinationSize === 'small' ? 'active' : ''}`}
+                  onClick={() => setDestinationSize('small')}
+                >
+                  Small
+                </button>
+                <button
+                  className={`size-option ${destinationSize === 'medium' ? 'active' : ''}`}
+                  onClick={() => setDestinationSize('medium')}
+                >
+                  Medium
+                </button>
+                <button
+                  className={`size-option ${destinationSize === 'large' ? 'active' : ''}`}
+                  onClick={() => setDestinationSize('large')}
+                >
+                  Large
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={handleCancelDestination}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleAddDestination}>
+                Add Destination
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
