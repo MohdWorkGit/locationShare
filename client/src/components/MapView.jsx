@@ -21,15 +21,19 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
 
-  // Set initial view to current user's location
+  // Set initial view to leader's location
   useEffect(() => {
-    if (!hasSetInitialView && members[currentUserId]?.location) {
-      const { lat, lng } = members[currentUserId].location
-      setCenter([lat, lng])
-      setZoom(15)
-      setHasSetInitialView(true)
+    if (!hasSetInitialView) {
+      // Find the leader
+      const leader = Object.values(members).find(member => member.isLeader)
+      if (leader?.location) {
+        const { lat, lng } = leader.location
+        setCenter([lat, lng])
+        setZoom(15)
+        setHasSetInitialView(true)
+      }
     }
-  }, [members, currentUserId, hasSetInitialView])
+  }, [members, hasSetInitialView])
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
