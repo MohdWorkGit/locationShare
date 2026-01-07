@@ -1,5 +1,6 @@
 import DestinationPath from './DestinationPath'
 import { clearDestinationPath } from '../services/socketService'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function LeaderControls({
   destinationPath,
@@ -8,27 +9,29 @@ function LeaderControls({
   pathsVisible,
   onExport
 }) {
+  const { t } = useLanguage()
+
   const handleClearPath = () => {
-    if (window.confirm('Are you sure you want to clear the entire destination path?')) {
+    if (window.confirm(t('leader.confirmClearPath'))) {
       clearDestinationPath()
     }
   }
 
   return (
     <div className="leader-controls">
-      <h3>👑 Leader Controls</h3>
+      <h3>👑 {t('leader.controls')}</h3>
 
       <div className="form-group">
-        <label>📍 Add Destinations</label>
-        <small>Click anywhere on the map to add a destination to the route</small>
+        <label>📍 {t('leader.addDestinations')}</label>
+        <small>{t('leader.addDestinationsHint')}</small>
       </div>
 
       <div className="path-controls">
         <button className="btn" onClick={onTogglePaths}>
-          📊 {pathsVisible ? 'Hide' : 'Show'} Member Paths
+          📊 {pathsVisible ? t('leader.hidePaths') : t('leader.showPaths')} {t('leader.memberPaths')}
         </button>
         <button className="btn btn-secondary" onClick={handleClearPath}>
-          🧹 Clear Route
+          🧹 {t('leader.clearRoute')}
         </button>
       </div>
 

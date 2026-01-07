@@ -26,8 +26,20 @@ export default {
     offline: 'غير متصل',
     lastSeen: 'آخر ظهور'
   },
+  memberList: {
+    groupMembers: 'أعضاء المجموعة',
+    locationShared: 'الموقع مشترك',
+    noLocation: 'لا يوجد موقع'
+  },
   leader: {
     controls: 'أدوات القائد',
+    addDestinations: 'إضافة وجهات',
+    addDestinationsHint: 'انقر في أي مكان على الخريطة لإضافة وجهة إلى المسار',
+    showPaths: 'إظهار',
+    hidePaths: 'إخفاء',
+    memberPaths: 'مسارات الأعضاء',
+    clearRoute: 'مسح المسار',
+    confirmClearPath: 'هل أنت متأكد من أنك تريد مسح مسار الوجهة بالكامل؟',
     destinationRoute: 'مسار الوجهات',
     noDestinations: 'لم يتم إضافة وجهات بعد. انقر على الخريطة لإضافة وجهات.',
     exportRoute: 'تصدير المسار',
@@ -37,6 +49,10 @@ export default {
     current: 'الحالي',
     completed: 'مكتمل',
     destination: 'الوجهة'
+  },
+  destinationPath: {
+    removeDestination: 'إزالة الوجهة',
+    confirmRemove: 'هل أنت متأكد من أنك تريد إزالة هذه الوجهة؟'
   },
   map: {
     street: 'خريطة الشارع',
@@ -63,6 +79,7 @@ export default {
     shown: 'ظاهر',
     hidden: 'مخفي',
     exporting: 'جاري تصدير المسار كـ',
-    failed: 'فشل تصدير المسار'
+    failed: 'فشل تصدير المسار',
+    leftRoom: 'تم مغادرة الغرفة بنجاح'
   }
 }

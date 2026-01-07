@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { addDestinationToPath } from '../services/socketService'
+import { useLanguage } from '../contexts/LanguageContext'
 import 'leaflet/dist/leaflet.css'
 
 function MapClickHandler({ isLeader, onMapClick }) {
@@ -26,6 +27,7 @@ function MapController({ mapRef }) {
 }
 
 function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex }) {
+  const { t } = useLanguage()
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
@@ -175,7 +177,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         <button
           className="map-control-btn"
           onClick={() => setMapType(mapType === 'street' ? 'satellite' : 'street')}
-          title={`Switch to ${mapType === 'street' ? 'satellite' : 'street'} view`}
+          title={`${t('map.switchTo')} ${mapType === 'street' ? t('map.satellite') : t('map.street')} ${t('map.view')}`}
         >
           {mapType === 'street' ? '🛰️' : '🗺️'}
         </button>
@@ -184,14 +186,14 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         <button
           className="map-control-btn"
           onClick={handleZoomIn}
-          title="Zoom in"
+          title={t('map.zoomIn')}
         >
           +
         </button>
         <button
           className="map-control-btn"
           onClick={handleZoomOut}
-          title="Zoom out"
+          title={t('map.zoomOut')}
         >
           −
         </button>
@@ -200,7 +202,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         <button
           className={`map-control-btn ${trackingMode === 'user' ? 'active' : ''}`}
           onClick={handleCenterOnMe}
-          title={trackingMode === 'user' ? 'Stop tracking my location' : 'Track my location'}
+          title={trackingMode === 'user' ? t('map.stopTrackingLocation') : t('map.trackLocation')}
         >
           📍
         </button>
@@ -210,7 +212,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           <button
             className={`map-control-btn ${trackingMode === 'destination' ? 'active' : ''}`}
             onClick={handleCenterOnDestination}
-            title={trackingMode === 'destination' ? 'Stop tracking destination' : 'Track current destination'}
+            title={trackingMode === 'destination' ? t('map.stopTrackingDestination') : t('map.trackDestination')}
           >
             🎯
           </button>
@@ -251,8 +253,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               <Popup>
                 <strong>{member.name}</strong> {member.isLeader ? '👑' : ''}
                 <br />
-                <small>Last seen: {new Date(member.lastSeen).toLocaleTimeString()}</small>
-                {accuracy && <><br /><small>Accuracy: {Math.round(accuracy)}m</small></>}
+                <small>{t('room.lastSeen')}: {new Date(member.lastSeen).toLocaleTimeString()}</small>
+                {accuracy && <><br /><small>{t('map.accuracy')}: {Math.round(accuracy)}m</small></>}
               </Popup>
             </Marker>
           )

@@ -26,8 +26,20 @@ export default {
     offline: 'Offline',
     lastSeen: 'Last seen'
   },
+  memberList: {
+    groupMembers: 'Group Members',
+    locationShared: 'Location shared',
+    noLocation: 'No location'
+  },
   leader: {
     controls: 'Leader Controls',
+    addDestinations: 'Add Destinations',
+    addDestinationsHint: 'Click anywhere on the map to add a destination to the route',
+    showPaths: 'Show',
+    hidePaths: 'Hide',
+    memberPaths: 'Member Paths',
+    clearRoute: 'Clear Route',
+    confirmClearPath: 'Are you sure you want to clear the entire destination path?',
     destinationRoute: 'Destination Route',
     noDestinations: 'No destinations added yet. Click on the map to add destinations.',
     exportRoute: 'Export Route',
@@ -37,6 +49,10 @@ export default {
     current: 'Current',
     completed: 'Completed',
     destination: 'Destination'
+  },
+  destinationPath: {
+    removeDestination: 'Remove destination',
+    confirmRemove: 'Are you sure you want to remove this destination?'
   },
   map: {
     street: 'Street',
@@ -63,6 +79,7 @@ export default {
     shown: 'shown',
     hidden: 'hidden',
     exporting: 'Exporting route as',
-    failed: 'Failed to export route'
+    failed: 'Failed to export route',
+    leftRoom: 'Left room successfully'
   }
 }
