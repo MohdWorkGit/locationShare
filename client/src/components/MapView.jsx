@@ -26,7 +26,7 @@ function MapController({ mapRef }) {
   return null
 }
 
-function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex }) {
+function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex, sidebarCollapsed }) {
   const { t } = useLanguage()
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
@@ -34,6 +34,16 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [mapType, setMapType] = useState('street') // street or satellite
   const [trackingMode, setTrackingMode] = useState('none') // 'none', 'user', 'destination'
   const mapRef = useRef(null)
+
+  // Invalidate map size when sidebar toggles
+  useEffect(() => {
+    if (mapRef.current) {
+      // Use setTimeout to ensure the CSS transition completes first
+      setTimeout(() => {
+        mapRef.current.invalidateSize()
+      }, 300) // Match the CSS transition duration
+    }
+  }, [sidebarCollapsed])
 
   // Set initial view to leader's location
   useEffect(() => {

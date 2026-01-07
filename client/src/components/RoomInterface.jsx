@@ -138,6 +138,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
         pathsVisible={pathsVisible}
         destinationPath={destinationPath}
         currentDestinationIndex={currentDestinationIndex}
+        sidebarCollapsed={sidebarCollapsed}
       />
 
       {notification && (
