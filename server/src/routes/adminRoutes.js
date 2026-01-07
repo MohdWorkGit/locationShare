@@ -1,29 +1,41 @@
 const express = require('express');
-const router = express.Router();
 const adminController = require('../controllers/adminController');
 
-// Create admin room
-router.post('/rooms', adminController.createAdminRoom);
+// Export a function that takes io instance
+function createAdminRoutes(io) {
+  const router = express.Router();
 
-// Get all admin rooms
-router.get('/rooms', adminController.getAdminRooms);
+  // Store io instance for controller to use
+  router.use((req, res, next) => {
+    req.io = io;
+    next();
+  });
 
-// Get room details
-router.get('/rooms/:roomCode', adminController.getRoomDetails);
+  // Create admin room
+  router.post('/rooms', adminController.createAdminRoom);
 
-// Update room settings
-router.put('/rooms/:roomCode', adminController.updateRoom);
+  // Get all admin rooms
+  router.get('/rooms', adminController.getAdminRooms);
 
-// Delete admin room
-router.delete('/rooms/:roomCode', adminController.deleteAdminRoom);
+  // Get room details
+  router.get('/rooms/:roomCode', adminController.getRoomDetails);
 
-// Assign leader to room
-router.post('/rooms/:roomCode/leaders', adminController.assignLeader);
+  // Update room settings
+  router.put('/rooms/:roomCode', adminController.updateRoom);
 
-// Remove leader from room
-router.delete('/rooms/:roomCode/leaders/:userId', adminController.removeLeader);
+  // Delete admin room
+  router.delete('/rooms/:roomCode', adminController.deleteAdminRoom);
 
-// Public endpoint for users to see available rooms
-router.get('/public-rooms', adminController.getPublicRooms);
+  // Assign leader to room
+  router.post('/rooms/:roomCode/leaders', adminController.assignLeader);
 
-module.exports = router;
+  // Remove leader from room
+  router.delete('/rooms/:roomCode/leaders/:userId', adminController.removeLeader);
+
+  // Public endpoint for users to see available rooms
+  router.get('/public-rooms', adminController.getPublicRooms);
+
+  return router;
+}
+
+module.exports = createAdminRoutes;
