@@ -7,7 +7,8 @@ function LeaderControls({
   currentDestinationIndex,
   onTogglePaths,
   pathsVisible,
-  onExport
+  onExport,
+  onEditDestination
 }) {
   const { t } = useLanguage()
 
@@ -39,6 +40,7 @@ function LeaderControls({
         destinationPath={destinationPath}
         currentDestinationIndex={currentDestinationIndex}
         onExport={onExport}
+        onEditDestination={onEditDestination}
       />
     </div>
   )

@@ -15,6 +15,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   const [notification, setNotification] = useState(null)
   const [destinationPath, setDestinationPath] = useState([])
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
+  const [editDestinationTrigger, setEditDestinationTrigger] = useState(null)  // {index, timestamp}
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // Hide sidebar by default on mobile devices
     return window.innerWidth <= 768
@@ -142,6 +143,10 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
     showNotification(`${t('notifications.pathHistory')} ${status}`, 'info')
   }
 
+  const handleEditDestination = (index) => {
+    setEditDestinationTrigger({ index, timestamp: Date.now() })
+  }
+
   const handleExport = async (format) => {
     try {
       // Construct API URL using environment variable or relative URL
@@ -188,6 +193,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
             onTogglePaths={handleTogglePaths}
             pathsVisible={pathsVisible}
             onExport={handleExport}
+            onEditDestination={handleEditDestination}
           />
         )}
 
@@ -214,6 +220,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
         destinationPath={destinationPath}
         currentDestinationIndex={currentDestinationIndex}
         sidebarCollapsed={sidebarCollapsed}
+        editDestinationTrigger={editDestinationTrigger}
       />
 
       {notification && (
