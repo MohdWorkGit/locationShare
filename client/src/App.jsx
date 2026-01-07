@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import RoomSetup from './components/RoomSetup'
 import RoomInterface from './components/RoomInterface'
+import AdminPage from './pages/AdminPage'
 import { initializeSocket, disconnectSocket } from './services/socketService'
 import { useLanguage } from './contexts/LanguageContext'
 import './styles/App.css'
 
-function App() {
+function MainApp() {
   const [currentRoom, setCurrentRoom] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [isLeader, setIsLeader] = useState(false)
@@ -73,6 +75,17 @@ function App() {
         )}
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
