@@ -1209,13 +1209,23 @@ input, select, textarea {
 
   /* Notifications - mobile positioning */
   .notification {
-    bottom: 80px;
+    top: auto;
+    bottom: 20px;
     left: 15px;
     right: 15px;
     width: auto;
     max-width: none;
-    padding: 15px;
-    font-size: 14px;
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.4;
+    transform: translateY(150px);
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.25);
+    z-index: 2000;
+    border-radius: 12px;
+  }
+
+  .notification.show {
+    transform: translateY(0);
   }
 
   /* Overlay backdrop for mobile sidebar */
@@ -1350,5 +1360,11 @@ input, select, textarea {
   [dir="rtl"] .language-toggle {
     right: auto;
     left: max(10px, env(safe-area-inset-left) + 5px);
+  }
+
+  .notification {
+    bottom: max(20px, env(safe-area-inset-bottom) + 10px);
+    left: max(15px, env(safe-area-inset-left) + 10px);
+    right: max(15px, env(safe-area-inset-right) + 10px);
   }
 }
