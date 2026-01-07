@@ -18,6 +18,10 @@
   min-width: 0;
   padding: 0;
   overflow: hidden;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  visibility: hidden;
 }
 
 [dir="rtl"] .sidebar-toggle {
@@ -137,6 +141,10 @@
   min-width: 0;
   padding: 0;
   overflow: hidden;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  visibility: hidden;
 }
 
 .sidebar-toggle {
