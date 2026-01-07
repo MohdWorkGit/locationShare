@@ -6,6 +6,7 @@ export default {
   setup: {
     createRoom: 'Create New Room (Leader)',
     joinRoom: 'Join Existing Room',
+    selectPublicRoom: 'Select Public Room',
     name: 'Your Name',
     roomCode: 'Room Code',
     chooseColor: 'Choose your color',
@@ -13,7 +14,10 @@ export default {
     chooseIcon: 'Or choose an icon',
     createAndStart: 'Create Room & Start Tracking',
     joinAndStart: 'Join Room & Start Tracking',
-    backToSetup: 'Back to Setup'
+    backToSetup: 'Back to Setup',
+    loadingRooms: 'Loading rooms...',
+    noPublicRooms: 'No public rooms available',
+    online: 'online'
   },
   room: {
     roomLabel: 'Room',
@@ -81,5 +85,33 @@ export default {
     exporting: 'Exporting route as',
     failed: 'Failed to export route',
     leftRoom: 'Left room successfully'
+  },
+  admin: {
+    title: 'Admin Dashboard',
+    createRoom: 'Create New Room',
+    rooms: 'Rooms',
+    code: 'Code',
+    users: 'Users',
+    online: 'Online',
+    leaders: 'Leaders',
+    makePublic: 'Make Public',
+    makePrivate: 'Make Private',
+    deleteRoom: 'Delete Room',
+    confirmDelete: 'Are you sure you want to delete this room?',
+    roomCreated: 'Room created successfully',
+    roomDeleted: 'Room deleted successfully',
+    roomUpdated: 'Room updated successfully',
+    leaderAssigned: 'Leader assigned successfully',
+    leaderRemoved: 'Leader removed successfully',
+    roomName: 'Room Name',
+    isPublic: 'Public Room',
+    cancel: 'Cancel',
+    create: 'Create',
+    roomDetails: 'Room Details',
+    noRoomSelected: 'Select a room to view details',
+    map: 'Map',
+    makeLeader: 'Make Leader',
+    removeLeader: 'Remove Leader',
+    noUsers: 'No users in this room'
   }
 }
