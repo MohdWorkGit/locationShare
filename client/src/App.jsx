@@ -31,6 +31,10 @@ function App() {
     setCurrentRoom(room)
     setCurrentUser(user)
     setIsLeader(false)
+    if(user.isLeader){
+       setIsLeader(true)
+    }
+   
   }
 
   const handleLeaveRoom = () => {
