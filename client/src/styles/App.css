@@ -134,6 +134,12 @@
   transform: scale(0.95);
 }
 
+.map-control-btn.active {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 .setup-form {
   width: 100%;
 }
