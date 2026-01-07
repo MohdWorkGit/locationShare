@@ -94,6 +94,11 @@ const roomController = {
       room.addUser(userId, { name, color, icon });
       userRooms.set(userId, roomCode);
 
+      // If this is an admin-created room with no leaders, make first user a leader
+      if (room.isAdminCreated && room.getLeaderIds().length === 0) {
+        room.addLeader(userId);
+      }
+
       res.status(200).json({
         success: true,
         room: room.toJSON(),
