@@ -136,6 +136,11 @@ export const onCurrentDestinationUpdated = (callback) => {
   s.on('current-destination-updated', callback)
 }
 
+export const onLeaderRoleUpdated = (callback) => {
+  const s = getSocket()
+  s.on('leader-role-updated', callback)
+}
+
 export default {
   initializeSocket,
   getSocket,
@@ -158,5 +163,6 @@ export default {
   clearDestinationPath,
   setCurrentDestinationIndex,
   onDestinationPathUpdated,
-  onCurrentDestinationUpdated
+  onCurrentDestinationUpdated,
+  onLeaderRoleUpdated
 }

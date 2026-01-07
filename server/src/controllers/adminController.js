@@ -110,6 +110,15 @@ const adminController = {
     // Make user a leader
     room.addLeader(userId);
 
+    // Emit socket event to notify all users in the room
+    if (req.io) {
+      req.io.to(roomCode).emit('leader-role-updated', {
+        userId: userId,
+        isLeader: true,
+        userName: userName
+      });
+    }
+
     res.json({
       success: true,
       room: room.toJSON()
@@ -133,6 +142,16 @@ const adminController = {
       return res.status(400).json({
         success: false,
         message: 'Cannot remove last leader'
+      });
+    }
+
+    // Emit socket event to notify all users in the room
+    const user = room.getUser(userId);
+    if (req.io && user) {
+      req.io.to(roomCode).emit('leader-role-updated', {
+        userId: userId,
+        isLeader: false,
+        userName: user.name
       });
     }
 

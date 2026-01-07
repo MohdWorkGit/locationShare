@@ -10,7 +10,8 @@ import {
   onDestinationRemoved,
   onLocationHistory,
   onDestinationPathUpdated,
-  onCurrentDestinationUpdated
+  onCurrentDestinationUpdated,
+  onLeaderRoleUpdated
 } from '../services/socketService'
 
 export function useSocketEvents(roomCode, userId, members, setMembers, setDestinationPath, setCurrentDestinationIndex, showNotification) {
@@ -162,6 +163,23 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
       }
     }
 
+    // Handle leader role updated
+    const handleLeaderRoleUpdated = (data) => {
+      console.log('Leader role updated:', data)
+      const { userId: targetUserId, isLeader, userName } = data
+      if (targetUserId && members[targetUserId]) {
+        setMembers(prev => ({
+          ...prev,
+          [targetUserId]: {
+            ...prev[targetUserId],
+            isLeader: isLeader
+          }
+        }))
+        const roleText = isLeader ? 'promoted to Leader' : 'changed to Member'
+        showNotification(`${userName} ${roleText} 👑`, 'info')
+      }
+    }
+
     // Register event listeners
     onRoomState(handleRoomState)
     onUserJoined(handleUserJoined)
@@ -173,6 +191,7 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
     onLocationHistory(handleLocationHistory)
     onDestinationPathUpdated(handleDestinationPathUpdated)
     onCurrentDestinationUpdated(handleCurrentDestinationUpdated)
+    onLeaderRoleUpdated(handleLeaderRoleUpdated)
 
     // Cleanup function
     return () => {

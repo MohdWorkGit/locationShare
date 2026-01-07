@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const roomRoutes = require('./routes/roomRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const createAdminRoutes = require('./routes/adminRoutes');
 const setupSocketHandlers = require('./socket/socketHandlers');
 
 const app = express();
@@ -42,7 +42,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api', roomRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', createAdminRoutes(io));
 
 // Health check
 app.get('/health', (req, res) => {

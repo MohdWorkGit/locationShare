@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import RoomSetup from './components/RoomSetup'
 import RoomInterface from './components/RoomInterface'
 import AdminPage from './pages/AdminPage'
-import { initializeSocket, disconnectSocket } from './services/socketService'
+import { initializeSocket, disconnectSocket, onLeaderRoleUpdated } from './services/socketService'
 import { useLanguage } from './contexts/LanguageContext'
 import './styles/App.css'
 
@@ -17,11 +17,21 @@ function MainApp() {
     // Initialize socket connection
     initializeSocket()
 
+    // Listen for leader role updates from admin
+    onLeaderRoleUpdated((data) => {
+      const { userId, isLeader: newIsLeader } = data
+      // Update isLeader state if the update is for the current user
+      if (currentUser && userId === currentUser.id) {
+        setIsLeader(newIsLeader)
+        console.log(`Your role updated: ${newIsLeader ? 'Leader' : 'Member'}`)
+      }
+    })
+
     return () => {
       // Cleanup on unmount
       disconnectSocket()
     }
-  }, [])
+  }, [currentUser])
 
   const handleRoomCreated = (room, user) => {
     setCurrentRoom(room)
