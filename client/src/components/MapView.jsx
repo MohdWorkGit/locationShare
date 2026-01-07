@@ -30,6 +30,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
+  const [trackingMode, setTrackingMode] = useState('none') // 'none', 'user', 'destination'
   const mapRef = useRef(null)
 
   // Set initial view to leader's location
@@ -45,6 +46,24 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       }
     }
   }, [members, hasSetInitialView])
+
+  // Track user location when in user tracking mode
+  useEffect(() => {
+    if (trackingMode === 'user' && mapRef.current && members[currentUserId]?.location) {
+      const { lat, lng } = members[currentUserId].location
+      mapRef.current.setView([lat, lng], mapRef.current.getZoom(), { animate: true })
+    }
+  }, [trackingMode, members, currentUserId])
+
+  // Track destination when in destination tracking mode
+  useEffect(() => {
+    if (trackingMode === 'destination' && mapRef.current && destinationPath && destinationPath.length > 0) {
+      const currentDest = destinationPath[currentDestinationIndex]
+      if (currentDest) {
+        mapRef.current.setView([currentDest.lat, currentDest.lng], mapRef.current.getZoom(), { animate: true })
+      }
+    }
+  }, [trackingMode, destinationPath, currentDestinationIndex])
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
@@ -68,6 +87,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     if (mapRef.current && members[currentUserId]?.location) {
       const { lat, lng } = members[currentUserId].location
       mapRef.current.flyTo([lat, lng], 15, { duration: 1 })
+      // Toggle tracking mode
+      setTrackingMode(trackingMode === 'user' ? 'none' : 'user')
     }
   }
 
@@ -76,6 +97,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       const currentDest = destinationPath[currentDestinationIndex]
       if (currentDest) {
         mapRef.current.flyTo([currentDest.lat, currentDest.lng], 15, { duration: 1 })
+        // Toggle tracking mode
+        setTrackingMode(trackingMode === 'destination' ? 'none' : 'destination')
       }
     }
   }
@@ -175,9 +198,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
         {/* Center on Current Location */}
         <button
-          className="map-control-btn"
+          className={`map-control-btn ${trackingMode === 'user' ? 'active' : ''}`}
           onClick={handleCenterOnMe}
-          title="Center on my location"
+          title={trackingMode === 'user' ? 'Stop tracking my location' : 'Track my location'}
         >
           📍
         </button>
@@ -185,9 +208,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         {/* Center on Destination */}
         {destinationPath && destinationPath.length > 0 && (
           <button
-            className="map-control-btn"
+            className={`map-control-btn ${trackingMode === 'destination' ? 'active' : ''}`}
             onClick={handleCenterOnDestination}
-            title="Center on current destination"
+            title={trackingMode === 'destination' ? 'Stop tracking destination' : 'Track current destination'}
           >
             🎯
           </button>
