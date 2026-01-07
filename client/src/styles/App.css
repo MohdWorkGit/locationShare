@@ -516,14 +516,14 @@
 
 .notification {
   position: fixed;
-  top: 20px;
+  top: 50%;
   right: 20px;
+  transform: translate(400px, -50%);
   color: white;
   padding: 10px 16px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  transform: translateX(400px);
   transition: transform 0.3s ease;
   font-size: 14px;
   line-height: 1.4;
@@ -532,7 +532,7 @@
 }
 
 .notification.show {
-  transform: translateX(0);
+  transform: translate(0, -50%);
 }
 
 @media (max-width: 768px) {
