@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import { addDestinationToPath } from '../services/socketService'
+import { addDestinationToPath, updateDestinationInPath } from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
 import 'leaflet/dist/leaflet.css'
 
@@ -34,11 +34,12 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [mapType, setMapType] = useState('street') // street or satellite
   const [trackingMode, setTrackingMode] = useState('none') // 'none', 'user', 'destination'
   const [showDestinationModal, setShowDestinationModal] = useState(false)
-  const [pendingDestination, setPendingDestination] = useState(null)
+  const [editingDestinationIndex, setEditingDestinationIndex] = useState(null)
   const [destinationNote, setDestinationNote] = useState('')
   const [destinationColor, setDestinationColor] = useState('#ff6b6b')
   const [destinationSize, setDestinationSize] = useState('medium')
   const mapRef = useRef(null)
+  const longPressTimerRef = useRef(null)
 
   // Invalidate map size when sidebar toggles
   useEffect(() => {
@@ -84,36 +85,68 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   const handleMapClick = (latlng) => {
     if (isLeader) {
-      setPendingDestination({ lat: latlng.lat, lng: latlng.lng })
-      setShowDestinationModal(true)
-      setDestinationNote('')
-      setDestinationColor('#ff6b6b')
-      setDestinationSize('medium')
+      // Add destination immediately with default values
+      addDestinationToPath({
+        lat: latlng.lat,
+        lng: latlng.lng,
+        note: '',
+        color: '#ff6b6b',
+        size: 50
+      })
     }
   }
 
-  const handleAddDestination = () => {
-    if (pendingDestination) {
-      const sizeMap = {
-        small: 30,
-        medium: 50,
-        large: 70
+  const handleDestinationMouseDown = (index) => {
+    if (!isLeader) return
+
+    longPressTimerRef.current = setTimeout(() => {
+      // Long press detected - open edit modal
+      const dest = destinationPath[index]
+      const sizeToOption = (size) => {
+        if (size <= 35) return 'small'
+        if (size <= 60) return 'medium'
+        return 'large'
       }
-      addDestinationToPath({
-        lat: pendingDestination.lat,
-        lng: pendingDestination.lng,
+
+      setEditingDestinationIndex(index)
+      setDestinationNote(dest.note || '')
+      setDestinationColor(dest.color || '#ff6b6b')
+      setDestinationSize(sizeToOption(dest.size || 50))
+      setShowDestinationModal(true)
+    }, 500) // 500ms for long press
+  }
+
+  const handleDestinationMouseUp = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  const handleSaveDestination = () => {
+    const sizeMap = {
+      small: 30,
+      medium: 50,
+      large: 70
+    }
+
+    if (editingDestinationIndex !== null) {
+      // Update existing destination
+      updateDestinationInPath(editingDestinationIndex, {
         note: destinationNote.trim() || '',
         color: destinationColor,
         size: sizeMap[destinationSize] || 50
       })
-      setShowDestinationModal(false)
-      setPendingDestination(null)
     }
+
+    setShowDestinationModal(false)
+    setEditingDestinationIndex(null)
+    setDestinationNote('')
   }
 
   const handleCancelDestination = () => {
     setShowDestinationModal(false)
-    setPendingDestination(null)
+    setEditingDestinationIndex(null)
     setDestinationNote('')
   }
 
@@ -320,6 +353,14 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               key={`dest-${index}`}
               position={[dest.lat, dest.lng]}
               icon={icon}
+              eventHandlers={{
+                mousedown: () => handleDestinationMouseDown(index),
+                mouseup: handleDestinationMouseUp,
+                mouseleave: handleDestinationMouseUp,
+                touchstart: () => handleDestinationMouseDown(index),
+                touchend: handleDestinationMouseUp,
+                touchcancel: handleDestinationMouseUp
+              }}
             >
               {dest.note && (
                 <Popup>
@@ -376,7 +417,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       {showDestinationModal && (
         <div className="modal-overlay" onClick={handleCancelDestination}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>📍 Add Destination</h3>
+            <h3>📍 {editingDestinationIndex !== null ? 'Edit Destination' : 'Add Destination'}</h3>
 
             <div className="form-group">
               <label>Note (optional)</label>
@@ -431,8 +472,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               <button className="btn btn-secondary" onClick={handleCancelDestination}>
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={handleAddDestination}>
-                Add Destination
+              <button className="btn btn-primary" onClick={handleSaveDestination}>
+                {editingDestinationIndex !== null ? 'Save Changes' : 'Add Destination'}
               </button>
             </div>
           </div>
