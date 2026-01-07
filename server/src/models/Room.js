@@ -173,6 +173,17 @@ class Room {
     return newIndex;
   }
 
+  updateDestinationInPath(index, updates) {
+    if (index >= 0 && index < this.destinationPath.length) {
+      const dest = this.destinationPath[index];
+      // Update only the provided fields
+      if (updates.note !== undefined) dest.note = updates.note;
+      if (updates.color !== undefined) dest.color = updates.color;
+      if (updates.size !== undefined) dest.size = updates.size;
+      dest.updatedAt = new Date();
+    }
+  }
+
   removeDestinationFromPath(index) {
     if (index >= 0 && index < this.destinationPath.length) {
       this.destinationPath.splice(index, 1);

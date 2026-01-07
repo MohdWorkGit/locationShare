@@ -111,6 +111,11 @@ export const addDestinationToPath = (destination) => {
   s.emit('add-destination-to-path', { destination })
 }
 
+export const updateDestinationInPath = (index, updates) => {
+  const s = getSocket()
+  s.emit('update-destination-in-path', { index, updates })
+}
+
 export const removeDestinationFromPath = (index) => {
   const s = getSocket()
   s.emit('remove-destination-from-path', { index })
@@ -159,6 +164,7 @@ export default {
   onDestinationRemoved,
   onLocationHistory,
   addDestinationToPath,
+  updateDestinationInPath,
   removeDestinationFromPath,
   clearDestinationPath,
   setCurrentDestinationIndex,

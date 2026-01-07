@@ -257,6 +257,47 @@ function setupSocketHandlers(io) {
       }
     });
 
+    // Update destination in path (leader only)
+    socket.on('update-destination-in-path', (data) => {
+      try {
+        const { index, updates } = data;
+        const roomCode = socket.roomCode;
+        const userId = socket.userId;
+
+        if (!roomCode) {
+          socket.emit('error', { message: 'Not in any room' });
+          return;
+        }
+
+        const room = rooms.get(roomCode);
+        if (!room) {
+          socket.emit('error', { message: 'Room not found' });
+          return;
+        }
+
+        // Check if user is leader
+        if (!room.isLeader(userId)) {
+          socket.emit('error', { message: 'Only leader can update destinations in path' });
+          return;
+        }
+
+        // Update destination in path
+        room.updateDestinationInPath(index, updates);
+
+        // Notify all users in the room
+        io.to(roomCode).emit('destination-path-updated', {
+          destinationPath: room.getDestinationPath(),
+          currentDestinationIndex: room.currentDestinationIndex,
+          message: `Destination ${index + 1} updated`
+        });
+
+        console.log(`Destination updated in path in room ${roomCode}, index: ${index}`);
+      } catch (error) {
+        console.error('Error updating destination in path:', error);
+        socket.emit('error', { message: 'Failed to update destination in path' });
+      }
+    });
+
     // Remove destination from path (leader only)
     socket.on('remove-destination-from-path', (data) => {
       try {
