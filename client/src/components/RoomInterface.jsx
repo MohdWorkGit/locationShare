@@ -15,7 +15,10 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
   const [notification, setNotification] = useState(null)
   const [destinationPath, setDestinationPath] = useState([])
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Hide sidebar by default on mobile devices
+    return window.innerWidth <= 768
+  })
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebarWidth')
     return saved ? parseInt(saved) : 400
