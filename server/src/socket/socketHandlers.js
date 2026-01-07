@@ -115,7 +115,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can set destinations' });
           return;
         }
@@ -165,7 +165,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can remove destinations' });
           return;
         }
@@ -235,7 +235,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can add destinations to path' });
           return;
         }
@@ -276,7 +276,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can remove destinations from path' });
           return;
         }
@@ -316,7 +316,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can clear destination path' });
           return;
         }
@@ -357,7 +357,7 @@ function setupSocketHandlers(io) {
         }
 
         // Check if user is leader
-        if (userId !== room.leaderId) {
+        if (!room.isLeader(userId)) {
           socket.emit('error', { message: 'Only leader can set current destination' });
           return;
         }
