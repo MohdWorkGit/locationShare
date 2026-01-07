@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import RoomSetup from './components/RoomSetup'
 import RoomInterface from './components/RoomInterface'
 import { initializeSocket, disconnectSocket } from './services/socketService'
+import { useLanguage } from './contexts/LanguageContext'
 import './styles/App.css'
 
 function App() {
   const [currentRoom, setCurrentRoom] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [isLeader, setIsLeader] = useState(false)
+  const { language, toggleLanguage, t } = useLanguage()
 
   useEffect(() => {
     // Initialize socket connection
@@ -39,11 +41,20 @@ function App() {
 
   return (
     <div className="app">
+      {/* Language Toggle Button */}
+      <button
+        className="language-toggle"
+        onClick={toggleLanguage}
+        title={language === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+      >
+        {language === 'en' ? 'عربي' : 'English'}
+      </button>
+
       <div className={`container ${currentRoom ? 'no-header' : ''}`}>
         {!currentRoom && (
           <div className="header">
-            <h1>🌍 Live Location Tracker</h1>
-            <p>Real-time group coordination and tracking</p>
+            <h1>🌍 {t('app.title')}</h1>
+            <p>{t('app.subtitle')}</p>
           </div>
         )}
 

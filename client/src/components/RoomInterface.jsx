@@ -6,8 +6,10 @@ import Notification from './Notification'
 import { useLocationTracking } from '../hooks/useLocationTracking'
 import { useSocketEvents } from '../hooks/useSocketEvents'
 import { leaveRoom } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
+  const { t } = useLanguage()
   const [members, setMembers] = useState({})
   const [pathsVisible, setPathsVisible] = useState(false)
   const [notification, setNotification] = useState(null)
@@ -72,7 +74,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
     try {
       await leaveRoom(room.code, user.id)
       onLeaveRoom()
-      showNotification('Left room successfully', 'info')
+      showNotification(t('notifications.leftRoom'), 'info')
     } catch (error) {
       showNotification(error.message, 'error')
     }
@@ -80,7 +82,8 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
 
   const handleTogglePaths = () => {
     setPathsVisible(!pathsVisible)
-    showNotification(`Path history ${!pathsVisible ? 'shown' : 'hidden'}`, 'info')
+    const status = !pathsVisible ? t('notifications.shown') : t('notifications.hidden')
+    showNotification(`${t('notifications.pathHistory')} ${status}`, 'info')
   }
 
   const handleExport = async (format) => {
@@ -89,9 +92,9 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
       const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin
       const url = `${apiBaseUrl}/api/rooms/${room.code}/export?format=${format}`
       window.open(url, '_blank')
-      showNotification(`Exporting route as ${format.toUpperCase()}...`, 'success')
+      showNotification(`${t('notifications.exporting')} ${format.toUpperCase()}...`, 'success')
     } catch (error) {
-      showNotification('Failed to export route', 'error')
+      showNotification(t('notifications.failed'), 'error')
     }
   }
 
@@ -104,9 +107,9 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
 
       <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="room-info">
-          <div><strong>Room:</strong> <span className="room-code">{room.code}</span></div>
-          <div><strong>Role:</strong> {isLeader ? 'Leader 👑' : 'Member'}</div>
-          <div><strong>Members:</strong> {Object.keys(members).length}</div>
+          <div><strong>{t('room.roomLabel')}:</strong> <span className="room-code">{room.code}</span></div>
+          <div><strong>{t('room.role')}:</strong> {isLeader ? `${t('room.leader')} 👑` : t('room.member')}</div>
+          <div><strong>{t('room.members')}:</strong> {Object.keys(members).length}</div>
         </div>
 
         <MemberList members={members} />
@@ -123,7 +126,7 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
 
         <div style={{ marginTop: '20px' }}>
           <button className="btn btn-secondary" onClick={handleLeaveRoom}>
-            🚪 Leave Room
+            🚪 {t('room.leaveRoom')}
           </button>
         </div>
       </div>

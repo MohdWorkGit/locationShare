@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createRoom, joinRoom } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import ColorSelector from './ColorSelector'
 import IconSelector from './IconSelector'
 import PhotoUpload from './PhotoUpload'
@@ -9,6 +10,7 @@ const LEADER_ICONS = ['👑', '🚀', '⭐', '🎯']
 const MEMBER_ICONS = ['🏃', '🚶', '🏃‍♀️', '🚶‍♀️', '🏃‍♂️', '🚶‍♂️', '🎭', '🎪']
 
 function RoomSetup({ onRoomCreated, onRoomJoined }) {
+  const { t } = useLanguage()
   const [view, setView] = useState('initial') // initial, create, join
   const [name, setName] = useState('')
   const [roomCode, setRoomCode] = useState('')
@@ -64,13 +66,13 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
 
   const renderInitialView = () => (
     <div className="setup-form">
-      <h2>🚀 Get Started</h2>
+      <h2>🚀 {t('setup.createRoom').includes('Leader') ? t('setup.createRoom').split('(')[0] : t('setup.createRoom')}</h2>
       <div className="form-group">
         <button className="btn" onClick={() => setView('create')}>
-          Create New Room (Leader)
+          {t('setup.createRoom')}
         </button>
         <button className="btn btn-secondary" onClick={() => setView('join')}>
-          Join Existing Room
+          {t('setup.joinRoom')}
         </button>
       </div>
     </div>
@@ -78,19 +80,19 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
 
   const renderCreateView = () => (
     <div className="setup-form">
-      <h2>👑 Create Room</h2>
+      <h2>👑 {t('setup.createRoom')}</h2>
       <div className="form-group">
-        <label>Your Name</label>
+        <label>{t('setup.name')}</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter your name"
+          placeholder={t('setup.name')}
         />
       </div>
 
       <div className="form-group">
-        <label>Choose Your Color</label>
+        <label>{t('setup.chooseColor')}</label>
         <ColorSelector
           selectedColor={selectedColor}
           onColorSelect={setSelectedColor}
@@ -98,7 +100,7 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
       </div>
 
       <div className="form-group">
-        <label>Profile Photo or Icon</label>
+        <label>{t('setup.uploadPhoto')}</label>
         <PhotoUpload
           selectedPhoto={selectedPhoto}
           onPhotoSelect={setSelectedPhoto}
@@ -107,7 +109,7 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
 
       {!selectedPhoto && (
         <div className="form-group">
-          <label>Or Choose an Icon</label>
+          <label>{t('setup.chooseIcon')}</label>
           <IconSelector
             icons={LEADER_ICONS}
             selectedIcon={selectedIcon}
@@ -117,19 +119,19 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
       )}
 
       <button className="btn" onClick={handleCreateRoom} disabled={loading}>
-        {loading ? 'Creating...' : 'Create Room & Start Tracking'}
+        {loading ? '...' : t('setup.createAndStart')}
       </button>
       <button className="btn btn-secondary" onClick={() => setView('initial')}>
-        Back
+        {t('setup.backToSetup')}
       </button>
     </div>
   )
 
   const renderJoinView = () => (
     <div className="setup-form">
-      <h2>🚪 Join Room</h2>
+      <h2>🚪 {t('setup.joinRoom')}</h2>
       <div className="form-group">
-        <label>Room Code</label>
+        <label>{t('setup.roomCode')}</label>
         <input
           type="text"
           value={roomCode}

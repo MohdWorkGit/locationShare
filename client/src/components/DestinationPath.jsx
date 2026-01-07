@@ -1,8 +1,11 @@
 import { removeDestinationFromPath } from '../services/socketService'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDestination, onExport }) {
+  const { t } = useLanguage()
+
   const handleRemove = (index) => {
-    if (window.confirm('Are you sure you want to remove this destination?')) {
+    if (window.confirm(t('destinationPath.confirmRemove'))) {
       removeDestinationFromPath(index)
     }
   }
@@ -14,15 +17,15 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
   if (!destinationPath || destinationPath.length === 0) {
     return (
       <div className="destination-path">
-        <h3>📍 Destination Route</h3>
-        <p className="empty-state">No destinations added yet. Click on the map to add destinations.</p>
+        <h3>📍 {t('leader.destinationRoute')}</h3>
+        <p className="empty-state">{t('leader.noDestinations')}</p>
       </div>
     )
   }
 
   return (
     <div className="destination-path">
-      <h3>📍 Destination Route ({destinationPath.length})</h3>
+      <h3>📍 {t('leader.destinationRoute')} ({destinationPath.length})</h3>
       <div className="destination-list">
         {destinationPath.map((dest, index) => (
           <div
@@ -42,12 +45,12 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
             </div>
             <div className="destination-actions">
               {index === currentDestinationIndex && (
-                <span className="current-badge">Current</span>
+                <span className="current-badge">{t('leader.current')}</span>
               )}
               <button
                 className="btn-action btn-remove"
                 onClick={() => handleRemove(index)}
-                title="Remove destination"
+                title={t('destinationPath.removeDestination')}
               >
                 ✕
               </button>
@@ -57,16 +60,16 @@ function DestinationPath({ destinationPath, currentDestinationIndex, onRemoveDes
       </div>
 
       <div className="export-controls">
-        <h4>Export Route</h4>
+        <h4>{t('leader.exportRoute')}</h4>
         <div className="export-buttons">
           <button className="btn-export" onClick={() => handleExport('json')}>
-            📄 JSON
+            📄 {t('export.json')}
           </button>
           <button className="btn-export" onClick={() => handleExport('gpx')}>
-            🗺️ GPX
+            🗺️ {t('export.gpx')}
           </button>
           <button className="btn-export" onClick={() => handleExport('csv')}>
-            📊 CSV
+            📊 {t('export.csv')}
           </button>
         </div>
       </div>

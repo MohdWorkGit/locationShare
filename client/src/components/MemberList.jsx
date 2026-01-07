@@ -1,4 +1,8 @@
+import { useLanguage } from '../contexts/LanguageContext'
+
 function MemberList({ members }) {
+  const { t } = useLanguage()
+
   const getStatusClass = (member) => {
     if (!member.lastSeen) return 'status-offline'
     const timeSinceLastSeen = new Date() - new Date(member.lastSeen)
@@ -11,7 +15,7 @@ function MemberList({ members }) {
 
   return (
     <div className="member-list">
-      <h3>👥 Group Members</h3>
+      <h3>👥 {t('memberList.groupMembers')}</h3>
       <div className="members-container">
         {Object.values(members).map(member => (
           <div key={member.id} className="member-item">
@@ -30,7 +34,7 @@ function MemberList({ members }) {
                 {member.name} {member.isLeader ? '👑' : ''}
               </div>
               <div className="member-status">
-                {member.location ? 'Location shared' : 'No location'}
+                {member.location ? t('memberList.locationShared') : t('memberList.noLocation')}
                 <span className={`status-indicator ${getStatusClass(member)}`}></span>
               </div>
             </div>
