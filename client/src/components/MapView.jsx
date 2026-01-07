@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet'
+import { useEffect, useState, useRef } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { addDestinationToPath } from '../services/socketService'
 import 'leaflet/dist/leaflet.css'
@@ -15,11 +15,22 @@ function MapClickHandler({ isLeader, onMapClick }) {
   return null
 }
 
+function MapController({ mapRef }) {
+  const map = useMap()
+
+  useEffect(() => {
+    mapRef.current = map
+  }, [map, mapRef])
+
+  return null
+}
+
 function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex }) {
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
+  const mapRef = useRef(null)
 
   // Set initial view to leader's location
   useEffect(() => {
@@ -38,6 +49,34 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const handleMapClick = (latlng) => {
     if (isLeader) {
       addDestinationToPath({ lat: latlng.lat, lng: latlng.lng })
+    }
+  }
+
+  const handleZoomIn = () => {
+    if (mapRef.current) {
+      mapRef.current.zoomIn()
+    }
+  }
+
+  const handleZoomOut = () => {
+    if (mapRef.current) {
+      mapRef.current.zoomOut()
+    }
+  }
+
+  const handleCenterOnMe = () => {
+    if (mapRef.current && members[currentUserId]?.location) {
+      const { lat, lng } = members[currentUserId].location
+      mapRef.current.flyTo([lat, lng], 15, { duration: 1 })
+    }
+  }
+
+  const handleCenterOnDestination = () => {
+    if (mapRef.current && destinationPath && destinationPath.length > 0) {
+      const currentDest = destinationPath[currentDestinationIndex]
+      if (currentDest) {
+        mapRef.current.flyTo([currentDest.lat, currentDest.lng], 15, { duration: 1 })
+      }
     }
   }
 
@@ -107,25 +146,67 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
   return (
     <div className="map-container">
-      {/* Map Type Toggle */}
-      <button
-        className="map-toggle-btn"
-        onClick={() => setMapType(mapType === 'street' ? 'satellite' : 'street')}
-        title={`Switch to ${mapType === 'street' ? 'satellite' : 'street'} view`}
-      >
-        {mapType === 'street' ? '🛰️' : '🗺️'}
-      </button>
+      {/* Map Controls - Right Side */}
+      <div className="map-controls-right">
+        {/* Map Type Toggle */}
+        <button
+          className="map-control-btn"
+          onClick={() => setMapType(mapType === 'street' ? 'satellite' : 'street')}
+          title={`Switch to ${mapType === 'street' ? 'satellite' : 'street'} view`}
+        >
+          {mapType === 'street' ? '🛰️' : '🗺️'}
+        </button>
+
+        {/* Zoom Controls */}
+        <button
+          className="map-control-btn"
+          onClick={handleZoomIn}
+          title="Zoom in"
+        >
+          +
+        </button>
+        <button
+          className="map-control-btn"
+          onClick={handleZoomOut}
+          title="Zoom out"
+        >
+          −
+        </button>
+
+        {/* Center on Current Location */}
+        <button
+          className="map-control-btn"
+          onClick={handleCenterOnMe}
+          title="Center on my location"
+        >
+          📍
+        </button>
+
+        {/* Center on Destination */}
+        {destinationPath && destinationPath.length > 0 && (
+          <button
+            className="map-control-btn"
+            onClick={handleCenterOnDestination}
+            title="Center on current destination"
+          >
+            🎯
+          </button>
+        )}
+      </div>
 
       <MapContainer
         center={center}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
+        zoomControl={false}
       >
         <TileLayer
           key={mapType}
           attribution={getTileLayerAttribution()}
           url={getTileLayerUrl()}
         />
+
+        <MapController mapRef={mapRef} />
 
         <MapClickHandler
           isLeader={isLeader}
