@@ -97,32 +97,40 @@
   position: relative;
 }
 
-.map-toggle-btn {
+.map-controls-right {
   position: absolute;
-  top: 80px;
-  left: 20px;
+  top: 20px;
+  right: 20px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-control-btn {
   background: rgba(255, 255, 255, 0.95);
   border: none;
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: #333;
 }
 
-.map-toggle-btn:hover {
+.map-control-btn:hover {
   background: white;
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.map-toggle-btn:active {
+.map-control-btn:active {
   transform: scale(0.95);
 }
 
@@ -406,12 +414,16 @@
     transform: translateX(-100%);
   }
 
-  .map-toggle-btn {
-    top: 70px;
-    left: 10px;
+  .map-controls-right {
+    top: 10px;
+    right: 10px;
+    gap: 8px;
+  }
+
+  .map-control-btn {
     width: 38px;
     height: 38px;
-    font-size: 20px;
+    font-size: 18px;
   }
 }
 
