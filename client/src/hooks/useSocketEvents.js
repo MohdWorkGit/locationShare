@@ -13,6 +13,7 @@ import {
   onCurrentDestinationUpdated,
   onLeaderRoleUpdated
 } from '../services/socketService'
+import { limitPathPoints } from '../utils/platformDetection'
 
 export function useSocketEvents(roomCode, userId, members, setMembers, setDestinationPath, setCurrentDestinationIndex, showNotification) {
   useEffect(() => {
@@ -128,11 +129,15 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
     const handleLocationHistory = (data) => {
       console.log('Location history received:', data)
       if (data.userId && data.locations && data.locations.length > 0) {
+        // Apply path point limiting to prevent memory issues and rendering lag
+        // iOS: limit to 100 points, Others: 200 points
+        const limitedPath = limitPathPoints(data.locations)
+
         setMembers(prev => ({
           ...prev,
           [data.userId]: {
             ...prev[data.userId],
-            path: data.locations
+            path: limitedPath
           }
         }))
       }
@@ -142,7 +147,9 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
     const handleDestinationPathUpdated = (data) => {
       console.log('Destination path updated:', data)
       if (data.destinationPath !== undefined) {
-        setDestinationPath(data.destinationPath)
+        // Apply path limiting to destination path as well to prevent memory issues
+        const limitedDestPath = limitPathPoints(data.destinationPath)
+        setDestinationPath(limitedDestPath)
       }
       if (data.currentDestinationIndex !== undefined) {
         setCurrentDestinationIndex(data.currentDestinationIndex)

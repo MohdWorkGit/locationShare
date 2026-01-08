@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { addDestinationToPath, updateDestinationInPath } from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
+import { isIOS } from '../utils/platformDetection'
 import 'leaflet/dist/leaflet.css'
 
 function MapClickHandler({ isLeader, onMapClick }) {
@@ -234,9 +235,14 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       ? `<img src="${member.icon}" alt="${member.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
       : member.icon
 
+    // iOS: Use lighter styles to reduce rendering overhead
+    const iosOptimized = isIOS()
+    const borderWidth = iosOptimized ? '2px' : '3px'
+    const boxShadow = iosOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
+
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div class="member-icon" style="background-color: ${member.color}; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; overflow: hidden;">
+      html: `<div class="member-icon" style="background-color: ${member.color}; border: ${borderWidth} solid white; box-shadow: ${boxShadow}; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; overflow: hidden;">
         ${iconContent}
       </div>`,
       iconSize: [40, 40],
@@ -264,9 +270,14 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 
+    // iOS: Use lighter styles to reduce rendering overhead
+    const iosOptimized = isIOS()
+    const borderWidth = iosOptimized ? '2px' : '3px'
+    const boxShadow = iosOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
+
     return L.divIcon({
       className: 'destination-marker',
-      html: `<div style="background: ${bgColor}; color: white; border: 3px solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: ${isCurrent ? '24px' : '12px'}; overflow: hidden;">
+      html: `<div style="background: ${bgColor}; color: white; border: ${borderWidth} solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: ${boxShadow}; font-size: ${isCurrent ? '24px' : '12px'}; overflow: hidden;">
         ${content}
       </div>`,
       iconSize: iconSize,
@@ -348,6 +359,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
+        preferCanvas={isIOS()}  // iOS: use canvas renderer instead of SVG for better performance
+        zoomAnimation={!isIOS()}  // iOS: disable zoom animations to reduce lag
+        fadeAnimation={!isIOS()}  // iOS: disable fade animations
+        markerZoomAnimation={!isIOS()}  // iOS: disable marker zoom animations
       >
         <TileLayer
           key={mapType}
@@ -450,9 +465,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           <Polyline
             positions={destinationPath.map(d => [d.lat, d.lng])}
             color="#2196F3"
-            weight={4}
-            opacity={0.8}
-            dashArray="10, 5"
+            weight={isIOS() ? 2 : 4}  // iOS: thinner lines for better performance
+            opacity={isIOS() ? 0.6 : 0.8}  // iOS: lower opacity reduces rendering cost
+            dashArray={isIOS() ? undefined : "10, 5"}  // iOS: disable dash for smoother rendering
           />
         )}
 
@@ -466,8 +481,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               key={`path-${member.id}`}
               positions={positions}
               color={member.color}
-              weight={3}
-              opacity={0.7}
+              weight={isIOS() ? 2 : 3}  // iOS: thinner lines for better performance
+              opacity={isIOS() ? 0.5 : 0.7}  // iOS: lower opacity reduces rendering cost
             />
           )
         })}
