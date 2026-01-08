@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { addDestinationToPath, updateDestinationInPath } from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -26,10 +26,25 @@ function MapController({ mapRef }) {
   return null
 }
 
+function ZoomTracker({ onZoomChange }) {
+  const map = useMapEvents({
+    zoomend: () => {
+      onZoomChange(map.getZoom())
+    }
+  })
+
+  useEffect(() => {
+    onZoomChange(map.getZoom())
+  }, [map, onZoomChange])
+
+  return null
+}
+
 function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex, sidebarCollapsed, editDestinationTrigger }) {
   const { t } = useLanguage()
   const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
   const [zoom, setZoom] = useState(13)
+  const [currentZoom, setCurrentZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
   const [trackingMode, setTrackingMode] = useState('user') // 'none', 'user', 'destination'
@@ -342,6 +357,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
         <MapController mapRef={mapRef} />
 
+        <ZoomTracker onZoomChange={setCurrentZoom} />
+
         <MapClickHandler
           isLeader={isLeader}
           onMapClick={handleMapClick}
@@ -392,23 +409,37 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               }}
             >
               {dest.note && (
-                <Popup>
-                  <div>
-                    <strong>📍 Destination {index + 1}</strong>
-                    <br />
-                    <div style={{ marginTop: '8px' }}>
+                <>
+                  <Tooltip
+                    direction="top"
+                    offset={[0, -10]}
+                    opacity={0.9}
+                    permanent={currentZoom >= 16}
+                  >
+                    <div style={{ maxWidth: '200px' }}>
+                      <strong>📍 {index + 1}</strong>
+                      <br />
                       {dest.note}
                     </div>
-                    {dest.addedAt && (
-                      <>
-                        <br />
-                        <small style={{ color: '#666' }}>
-                          {t('map.added')}: {new Date(dest.addedAt).toLocaleString()}
-                        </small>
-                      </>
-                    )}
-                  </div>
-                </Popup>
+                  </Tooltip>
+                  <Popup>
+                    <div>
+                      <strong>📍 Destination {index + 1}</strong>
+                      <br />
+                      <div style={{ marginTop: '8px' }}>
+                        {dest.note}
+                      </div>
+                      {dest.addedAt && (
+                        <>
+                          <br />
+                          <small style={{ color: '#666' }}>
+                            {t('map.added')}: {new Date(dest.addedAt).toLocaleString()}
+                          </small>
+                        </>
+                      )}
+                    </div>
+                  </Popup>
+                </>
               )}
             </Marker>
           )
