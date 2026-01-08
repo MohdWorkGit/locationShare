@@ -143,9 +143,10 @@ class Room {
       timestamp: new Date()
     });
 
-    // Keep only last 50 locations
-    if (history.length > 50000) {
-      this.locationHistory.set(userId, history.slice(-50));
+    // Keep only last 300 locations per user (with 3-second throttle = ~15 minutes of history)
+    // This prevents excessive memory usage during long tracking sessions
+    if (history.length > 300) {
+      this.locationHistory.set(userId, history.slice(-300));
     }
   }
 
