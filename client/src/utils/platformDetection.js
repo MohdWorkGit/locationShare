@@ -45,12 +45,12 @@ export const isIOSSafari = () => {
  */
 export const getGeolocationOptions = () => {
   if (isIOS()) {
-    // iOS-specific options: disable high-accuracy GPS to reduce lag
-    // Use cached positions more aggressively to minimize main thread blocking
+    // iOS-specific options: Very conservative to avoid POSITION_UNAVAILABLE
+    // iOS Safari is extremely restrictive and often fails with aggressive settings
     return {
       enableHighAccuracy: false,  // Use network/WiFi positioning instead of GPS
-      timeout: 15000,              // Allow more time for iOS to respond (15s)
-      maximumAge: 5000             // Accept positions cached up to 5s ago
+      timeout: 30000,              // Give iOS plenty of time (30s) to avoid early failures
+      maximumAge: 60000            // Accept old positions (60s) - iOS often caches aggressively
     };
   }
 
