@@ -83,12 +83,25 @@ export function useLocationTracking(userId, onLocationUpdate) {
       errorCountRef.current++
 
       let message = 'Unknown location error'
+      let userMessage = ''
+
       switch (error.code) {
         case error.PERMISSION_DENIED:
           message = 'Location access denied. Please enable location sharing.'
+          userMessage = 'Please enable location access in your browser settings.'
           break
         case error.POSITION_UNAVAILABLE:
           message = 'Location information unavailable.'
+          // iOS-specific diagnostics for POSITION_UNAVAILABLE
+          if (isIOS()) {
+            console.error('iOS Location Error - Possible causes:')
+            console.error('1. Location Services disabled: Settings → Privacy → Location Services')
+            console.error('2. Safari lacks permission: Settings → Privacy → Location Services → Safari')
+            console.error('3. Using HTTP on real device (HTTPS required)')
+            console.error('4. Poor GPS/WiFi signal')
+            console.error('5. Check if site is served over HTTPS:', window.location.protocol)
+            userMessage = 'Cannot get location. Check iOS Settings → Privacy → Location Services → Safari'
+          }
           break
         case error.TIMEOUT:
           message = 'Location request timeout.'
@@ -99,6 +112,38 @@ export function useLocationTracking(userId, onLocationUpdate) {
           break
       }
       console.error(message, error)
+
+      // Show user-friendly message if onLocationUpdate can handle it
+      if (userMessage) {
+        console.warn('User message:', userMessage)
+      }
+
+      // iOS-specific: Try recovery with ultra-conservative settings on POSITION_UNAVAILABLE
+      if (isIOS() && error.code === error.POSITION_UNAVAILABLE && errorCountRef.current === 1) {
+        console.warn('iOS POSITION_UNAVAILABLE - trying ultra-conservative fallback settings...')
+
+        // Clear existing watch
+        if (watchIdRef.current !== null) {
+          navigator.geolocation.clearWatch(watchIdRef.current)
+          watchIdRef.current = null
+        }
+
+        // Retry with absolute minimum requirements (most permissive)
+        setTimeout(() => {
+          if (isUnmountedRef.current) return
+
+          watchIdRef.current = navigator.geolocation.watchPosition(
+            handleSuccess,
+            handleError,
+            {
+              enableHighAccuracy: false,
+              timeout: Infinity,        // Never timeout - wait indefinitely
+              maximumAge: Infinity      // Accept any cached position, no matter how old
+            }
+          )
+        }, 1000)
+        return // Don't increment error count yet, give fallback a chance
+      }
 
       // iOS-specific: Detect when location updates have completely stalled
       if (isIOS() && errorCountRef.current >= MAX_CONSECUTIVE_ERRORS) {
