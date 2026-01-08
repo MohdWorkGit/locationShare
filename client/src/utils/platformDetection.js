@@ -40,23 +40,23 @@ export const isIOSSafari = () => {
 
 /**
  * Get platform-optimized geolocation options
- * iOS uses conservative settings to prevent lag and battery drain
+ * Safari (desktop + iOS) requires conservative settings to avoid POSITION_UNAVAILABLE
  * @returns {PositionOptions} Geolocation watchPosition options
  */
 export const getGeolocationOptions = () => {
-  if (isIOS()) {
-    // iOS-specific options: Very conservative to avoid POSITION_UNAVAILABLE
-    // iOS Safari is extremely restrictive and often fails with aggressive settings
+  // Safari-specific options (both desktop macOS Safari and iOS Safari)
+  // Safari throws POSITION_UNAVAILABLE (code 2) with aggressive settings
+  if (isSafari()) {
     return {
-      enableHighAccuracy: false,  // Use network/WiFi positioning instead of GPS
-      timeout: 30000,              // Give iOS plenty of time (30s) to avoid early failures
-      maximumAge: 60000            // Accept old positions (60s) - iOS often caches aggressively
+      enableHighAccuracy: false,  // CRITICAL: Safari fails with true - use network/WiFi
+      timeout: 30000,              // 30s timeout - Safari needs time to acquire position
+      maximumAge: 60000            // Accept cached positions up to 60s old
     };
   }
 
-  // Android and desktop: use more accurate settings
+  // Chrome, Firefox, Edge: use accurate GPS settings
   return {
-    enableHighAccuracy: true,    // Use GPS for accuracy
+    enableHighAccuracy: true,    // Use GPS for precision
     timeout: 5000,               // Faster timeout acceptable
     maximumAge: 10000            // 10s cache is fine
   };
@@ -64,10 +64,10 @@ export const getGeolocationOptions = () => {
 
 /**
  * Maximum number of path points to store in memory
- * iOS: More aggressive limiting to prevent memory issues and lag during path rendering
+ * Safari: More aggressive limiting to prevent memory issues and lag during path rendering
  * Other platforms: Can handle more points
  */
-export const MAX_PATH_POINTS = isIOS() ? 100 : 200;
+export const MAX_PATH_POINTS = isSafari() ? 100 : 200;
 
 /**
  * Limits an array of path points to prevent excessive memory usage and rendering lag
@@ -78,7 +78,7 @@ export const MAX_PATH_POINTS = isIOS() ? 100 : 200;
 export const limitPathPoints = (pathPoints) => {
   if (!Array.isArray(pathPoints)) return [];
 
-  const maxPoints = isIOS() ? 100 : 200;
+  const maxPoints = isSafari() ? 100 : 200;
 
   if (pathPoints.length <= maxPoints) {
     return pathPoints;

@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMapEvents
 import L from 'leaflet'
 import { addDestinationToPath, updateDestinationInPath } from '../services/socketService'
 import { useLanguage } from '../contexts/LanguageContext'
-import { isIOS } from '../utils/platformDetection'
+import { isSafari } from '../utils/platformDetection'
 import 'leaflet/dist/leaflet.css'
 
 function MapClickHandler({ isLeader, onMapClick }) {
@@ -235,10 +235,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       ? `<img src="${member.icon}" alt="${member.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
       : member.icon
 
-    // iOS: Use lighter styles to reduce rendering overhead
-    const iosOptimized = isIOS()
-    const borderWidth = iosOptimized ? '2px' : '3px'
-    const boxShadow = iosOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
+    // Safari: Use lighter styles to reduce rendering overhead
+    const safariOptimized = isSafari()
+    const borderWidth = safariOptimized ? '2px' : '3px'
+    const boxShadow = safariOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
 
     return L.divIcon({
       className: 'custom-marker',
@@ -270,10 +270,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 
-    // iOS: Use lighter styles to reduce rendering overhead
-    const iosOptimized = isIOS()
-    const borderWidth = iosOptimized ? '2px' : '3px'
-    const boxShadow = iosOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
+    // Safari: Use lighter styles to reduce rendering overhead
+    const safariOptimized = isSafari()
+    const borderWidth = safariOptimized ? '2px' : '3px'
+    const boxShadow = safariOptimized ? 'none' : '0 2px 8px rgba(0,0,0,0.3)'
 
     return L.divIcon({
       className: 'destination-marker',
@@ -359,10 +359,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
-        preferCanvas={isIOS()}  // iOS: use canvas renderer instead of SVG for better performance
-        zoomAnimation={!isIOS()}  // iOS: disable zoom animations to reduce lag
-        fadeAnimation={!isIOS()}  // iOS: disable fade animations
-        markerZoomAnimation={!isIOS()}  // iOS: disable marker zoom animations
+        preferCanvas={isSafari()}  // Safari: use canvas renderer instead of SVG for better performance
+        zoomAnimation={!isSafari()}  // Safari: disable zoom animations to reduce lag
+        fadeAnimation={!isSafari()}  // Safari: disable fade animations
+        markerZoomAnimation={!isSafari()}  // Safari: disable marker zoom animations
       >
         <TileLayer
           key={mapType}
@@ -465,9 +465,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           <Polyline
             positions={destinationPath.map(d => [d.lat, d.lng])}
             color="#2196F3"
-            weight={isIOS() ? 2 : 4}  // iOS: thinner lines for better performance
-            opacity={isIOS() ? 0.6 : 0.8}  // iOS: lower opacity reduces rendering cost
-            dashArray={isIOS() ? undefined : "10, 5"}  // iOS: disable dash for smoother rendering
+            weight={isSafari() ? 2 : 4}  // Safari: thinner lines for better performance
+            opacity={isSafari() ? 0.6 : 0.8}  // Safari: lower opacity reduces rendering cost
+            dashArray={isSafari() ? undefined : "10, 5"}  // Safari: disable dash for smoother rendering
           />
         )}
 
@@ -481,8 +481,8 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
               key={`path-${member.id}`}
               positions={positions}
               color={member.color}
-              weight={isIOS() ? 2 : 3}  // iOS: thinner lines for better performance
-              opacity={isIOS() ? 0.5 : 0.7}  // iOS: lower opacity reduces rendering cost
+              weight={isSafari() ? 2 : 3}  // Safari: thinner lines for better performance
+              opacity={isSafari() ? 0.5 : 0.7}  // Safari: lower opacity reduces rendering cost
             />
           )
         })}
