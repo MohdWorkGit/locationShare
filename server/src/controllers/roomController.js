@@ -144,10 +144,8 @@ const roomController = {
       room.removeUser(userId);
       userRooms.delete(userId);
 
-      // Delete room if empty or leader left
-      if (room.users.size === 0 || userId === room.leaderId) {
-        rooms.delete(roomCode);
-      }
+      // Rooms are only deleted by admins explicitly
+      // Even if all users leave or the leader leaves, the room persists
 
       res.status(200).json({
         success: true,
