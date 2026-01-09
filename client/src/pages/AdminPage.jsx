@@ -8,7 +8,8 @@ import {
   updateRoom,
   getRoomDetails,
   assignLeader,
-  removeLeader
+  removeLeader,
+  removeUser
 } from '../services/adminApi';
 import MapView from '../components/MapView';
 import '../styles/AdminPage.css';
@@ -24,6 +25,7 @@ function AdminPage() {
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomPublic, setNewRoomPublic] = useState(true);
   const [notification, setNotification] = useState(null);
+  const [roomFilter, setRoomFilter] = useState('all'); // 'all', 'public', 'private'
 
   useEffect(() => {
     loadRooms();
@@ -133,6 +135,32 @@ function AdminPage() {
     }
   };
 
+  const handleRemoveUser = async (userId) => {
+    if (!selectedRoom) return;
+
+    const user = selectedRoom.users.find(u => u.id === userId);
+    if (!user) return;
+
+    if (!window.confirm(`${t('admin.confirmRemoveUser')} "${user.name}"?`)) return;
+
+    try {
+      await removeUser(selectedRoom.code, userId);
+      showNotification(t('admin.userRemoved'), 'success');
+      const response = await getRoomDetails(selectedRoom.code);
+      setSelectedRoom(response.room);
+      loadRooms();
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+  };
+
+  // Filter rooms based on selected tab
+  const filteredRooms = rooms.filter(room => {
+    if (roomFilter === 'public') return room.isPublic;
+    if (roomFilter === 'private') return !room.isPublic;
+    return true; // 'all'
+  });
+
   return (
     <div className="admin-page">
       {/* Header */}
@@ -160,13 +188,41 @@ function AdminPage() {
             </button>
           </div>
 
+          {/* Room Filter Tabs */}
+          <div className="room-tabs">
+            <button
+              className={`room-tab ${roomFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setRoomFilter('all')}
+            >
+              {t('admin.allRooms')}
+              <span className="room-tab-badge">{rooms.length}</span>
+            </button>
+            <button
+              className={`room-tab ${roomFilter === 'public' ? 'active' : ''}`}
+              onClick={() => setRoomFilter('public')}
+            >
+              🌐 {t('admin.publicRooms')}
+              <span className="room-tab-badge">{rooms.filter(r => r.isPublic).length}</span>
+            </button>
+            <button
+              className={`room-tab ${roomFilter === 'private' ? 'active' : ''}`}
+              onClick={() => setRoomFilter('private')}
+            >
+              🔒 {t('admin.privateRooms')}
+              <span className="room-tab-badge">{rooms.filter(r => !r.isPublic).length}</span>
+            </button>
+          </div>
+
           {loading ? (
             <div className="admin-loading">{t('admin.loading')}</div>
-          ) : rooms.length === 0 ? (
-            <div className="admin-empty">{t('admin.noRooms')}</div>
+          ) : filteredRooms.length === 0 ? (
+            <div className="admin-empty">
+              {roomFilter === 'all' ? t('admin.noRooms') :
+               roomFilter === 'public' ? t('admin.noPublicRooms') : t('admin.noPrivateRooms')}
+            </div>
           ) : (
             <div className="rooms-list">
-              {rooms.map(room => (
+              {filteredRooms.map(room => (
                 <div
                   key={room.code}
                   className={`room-card ${selectedRoom?.code === room.code ? 'active' : ''}`}
@@ -261,21 +317,39 @@ function AdminPage() {
                         </div>
                         <div className="user-actions">
                           {user.isLeader ? (
-                            selectedRoom.leaderIds.length > 1 && (
+                            <>
+                              {selectedRoom.leaderIds.length > 1 && (
+                                <button
+                                  onClick={() => handleRemoveLeader(user.id)}
+                                  className="btn btn-small btn-secondary"
+                                >
+                                  {t('admin.removeLeader')}
+                                </button>
+                              )}
                               <button
-                                onClick={() => handleRemoveLeader(user.id)}
-                                className="btn btn-small btn-secondary"
+                                onClick={() => handleRemoveUser(user.id)}
+                                className="btn btn-small btn-delete"
+                                style={{ marginLeft: '5px' }}
                               >
-                                {t('admin.removeLeader')}
+                                🗑️ {t('admin.removeUser')}
                               </button>
-                            )
+                            </>
                           ) : (
-                            <button
-                              onClick={() => handleMakeLeader(user.id)}
-                              className="btn btn-small"
-                            >
-                              {t('admin.makeLeader')}
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleMakeLeader(user.id)}
+                                className="btn btn-small"
+                              >
+                                {t('admin.makeLeader')}
+                              </button>
+                              <button
+                                onClick={() => handleRemoveUser(user.id)}
+                                className="btn btn-small btn-delete"
+                                style={{ marginLeft: '5px' }}
+                              >
+                                🗑️ {t('admin.removeUser')}
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
