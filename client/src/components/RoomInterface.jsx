@@ -124,7 +124,8 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
     setMembers,
     setDestinationPath,
     setCurrentDestinationIndex,
-    showNotification
+    showNotification,
+    onLeaveRoom
   )
 
   const handleLeaveRoom = async () => {
@@ -133,7 +134,13 @@ function RoomInterface({ room, user, isLeader, onLeaveRoom }) {
       onLeaveRoom()
       showNotification(t('notifications.leftRoom'), 'info')
     } catch (error) {
-      showNotification(error.message, 'error')
+      // If room not found (deleted by admin), still leave the room UI
+      if (error.message.includes('Room not found') || error.message.includes('not found')) {
+        onLeaveRoom()
+        showNotification(t('notifications.roomNoLongerExists'), 'warning')
+      } else {
+        showNotification(error.message, 'error')
+      }
     }
   }
 

@@ -223,6 +223,14 @@ const adminController = {
       });
     }
 
+    // Notify all users in the room that it's being deleted
+    if (req.io) {
+      req.io.to(roomCode).emit('room-deleted', {
+        roomCode,
+        message: 'This room has been deleted by an administrator'
+      });
+    }
+
     rooms.delete(roomCode);
 
     res.json({

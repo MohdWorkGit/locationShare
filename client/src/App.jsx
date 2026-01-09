@@ -5,13 +5,66 @@ import RoomInterface from './components/RoomInterface'
 import AdminPage from './pages/AdminPage'
 import { initializeSocket, disconnectSocket, onLeaderRoleUpdated } from './services/socketService'
 import { useLanguage } from './contexts/LanguageContext'
+import { saveSession, getSession, clearSession } from './utils/sessionStorage'
+import { joinRoom } from './services/api'
 import './styles/App.css'
 
 function MainApp() {
   const [currentRoom, setCurrentRoom] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [isLeader, setIsLeader] = useState(false)
+  const [isRejoining, setIsRejoining] = useState(false)
   const { language, toggleLanguage, t } = useLanguage()
+
+  // Check for saved session and attempt to rejoin on mount
+  useEffect(() => {
+    const attemptRejoin = async () => {
+      const savedSession = getSession()
+      if (savedSession && savedSession.room && savedSession.user) {
+        console.log('Found saved session, attempting to rejoin:', savedSession)
+        setIsRejoining(true)
+
+        try {
+          // Try to rejoin the room using the saved room code and user info
+          const response = await joinRoom(
+            savedSession.room.code,
+            savedSession.user.name,
+            savedSession.user.color,
+            savedSession.user.icon
+          )
+
+          if (response.success) {
+            console.log('Successfully rejoined room:', response)
+            // Set the room and user state
+            setCurrentRoom(response.room)
+            setCurrentUser({
+              id: response.userId,
+              ...savedSession.user
+            })
+            setIsLeader(savedSession.isLeader || false)
+
+            // Update the saved session with the new userId (in case it changed)
+            saveSession({
+              room: response.room,
+              user: {
+                id: response.userId,
+                ...savedSession.user
+              },
+              isLeader: savedSession.isLeader || false
+            })
+          }
+        } catch (error) {
+          console.error('Failed to rejoin room:', error)
+          // Clear the invalid session
+          clearSession()
+        } finally {
+          setIsRejoining(false)
+        }
+      }
+    }
+
+    attemptRejoin()
+  }, [])
 
   useEffect(() => {
     // Initialize socket connection
@@ -37,22 +90,36 @@ function MainApp() {
     setCurrentRoom(room)
     setCurrentUser(user)
     setIsLeader(true)
+
+    // Save session to localStorage
+    saveSession({
+      room,
+      user: { ...user, isLeader: true },
+      isLeader: true
+    })
   }
 
   const handleRoomJoined = (room, user) => {
+    const userIsLeader = user.isLeader || false
     setCurrentRoom(room)
     setCurrentUser(user)
-    setIsLeader(false)
-    if(user.isLeader){
-       setIsLeader(true)
-    }
-   
+    setIsLeader(userIsLeader)
+
+    // Save session to localStorage
+    saveSession({
+      room,
+      user: { ...user, isLeader: userIsLeader },
+      isLeader: userIsLeader
+    })
   }
 
   const handleLeaveRoom = () => {
     setCurrentRoom(null)
     setCurrentUser(null)
     setIsLeader(false)
+
+    // Clear session from localStorage
+    clearSession()
   }
 
   return (
@@ -74,7 +141,12 @@ function MainApp() {
           </div>
         )}
 
-        {!currentRoom ? (
+        {isRejoining ? (
+          <div className="loading-container" style={{ textAlign: 'center', padding: '50px' }}>
+            <h2>Rejoining your previous session...</h2>
+            <p>Please wait...</p>
+          </div>
+        ) : !currentRoom ? (
           <RoomSetup
             onRoomCreated={handleRoomCreated}
             onRoomJoined={handleRoomJoined}

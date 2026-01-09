@@ -11,11 +11,12 @@ import {
   onLocationHistory,
   onDestinationPathUpdated,
   onCurrentDestinationUpdated,
-  onLeaderRoleUpdated
+  onLeaderRoleUpdated,
+  onRoomDeleted
 } from '../services/socketService'
 import { limitPathPoints } from '../utils/platformDetection'
 
-export function useSocketEvents(roomCode, userId, members, setMembers, setDestinationPath, setCurrentDestinationIndex, showNotification) {
+export function useSocketEvents(roomCode, userId, members, setMembers, setDestinationPath, setCurrentDestinationIndex, showNotification, onLeaveRoom) {
   useEffect(() => {
     // Join the room
     joinSocketRoom(roomCode, userId)
@@ -187,6 +188,16 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
       }
     }
 
+    // Handle room deleted by admin
+    const handleRoomDeleted = (data) => {
+      console.log('Room deleted:', data)
+      showNotification('This room has been deleted by an administrator', 'warning')
+      // Leave the room UI
+      if (onLeaveRoom) {
+        onLeaveRoom()
+      }
+    }
+
     // Register event listeners
     onRoomState(handleRoomState)
     onUserJoined(handleUserJoined)
@@ -199,6 +210,7 @@ export function useSocketEvents(roomCode, userId, members, setMembers, setDestin
     onDestinationPathUpdated(handleDestinationPathUpdated)
     onCurrentDestinationUpdated(handleCurrentDestinationUpdated)
     onLeaderRoleUpdated(handleLeaderRoleUpdated)
+    onRoomDeleted(handleRoomDeleted)
 
     // Cleanup function
     return () => {
