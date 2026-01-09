@@ -138,6 +138,8 @@ export default {
     noPublicRooms: 'No public rooms available',
     noPrivateRooms: 'No private rooms available',
     noAdminRooms: 'No admin rooms available',
-    noUserRooms: 'No user rooms available'
+    noUserRooms: 'No user rooms available',
+    menuOptionsShown: 'Menu options are now visible',
+    menuOptionsHidden: 'Menu options are now hidden'
   }
 }

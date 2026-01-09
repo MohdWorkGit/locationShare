@@ -138,6 +138,8 @@ export default {
     noPublicRooms: 'لا توجد غرف عامة متاحة',
     noPrivateRooms: 'لا توجد غرف خاصة متاحة',
     noAdminRooms: 'لا توجد غرف إدارية متاحة',
-    noUserRooms: 'لا توجد غرف مستخدمين متاحة'
+    noUserRooms: 'لا توجد غرف مستخدمين متاحة',
+    menuOptionsShown: 'خيارات القائمة مرئية الآن',
+    menuOptionsHidden: 'خيارات القائمة مخفية الآن'
   }
 }
