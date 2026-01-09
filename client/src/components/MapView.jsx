@@ -43,7 +43,7 @@ function ZoomTracker({ onZoomChange }) {
 
 function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPath, currentDestinationIndex, sidebarCollapsed, editDestinationTrigger }) {
   const { t } = useLanguage()
-  const [center, setCenter] = useState([25.2854, 55.3781]) // Dubai default
+  const [center, setCenter] = useState([23.5880, 58.3829]) // Muscat, Oman default
   const [zoom, setZoom] = useState(13)
   const [currentZoom, setCurrentZoom] = useState(13)
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
