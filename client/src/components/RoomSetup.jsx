@@ -9,6 +9,7 @@ import Notification from './Notification'
 
 const LEADER_ICONS = ['👑', '🚀', '⭐', '🎯']
 const MEMBER_ICONS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c']
 
 function RoomSetup({ onRoomCreated, onRoomJoined }) {
   const { t } = useLanguage()
@@ -22,6 +23,7 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
   const [loading, setLoading] = useState(false)
   const [publicRooms, setPublicRooms] = useState([])
   const [loadingRooms, setLoadingRooms] = useState(false)
+  const [isPublicRoomJoin, setIsPublicRoomJoin] = useState(false)
   const [menuOptionsVisible, setMenuOptionsVisible] = useState(() => {
     const saved = localStorage.getItem('menuOptionsVisible');
     return saved === 'true'; // Default is false (hidden)
@@ -65,6 +67,10 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
     setRoomCode(room.code);
     setView('join');
     setSelectedIcon(MEMBER_ICONS[0]);
+    setIsPublicRoomJoin(true);
+    // Generate random color for public room joins
+    const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    setSelectedColor(randomColor);
   };
 
   const handleCreateRoom = async () => {
@@ -119,7 +125,10 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
           </button>
         )}
         {menuOptionsVisible && (
-          <button className="btn btn-secondary" onClick={() => setView('join')}>
+          <button className="btn btn-secondary" onClick={() => {
+            setView('join');
+            setIsPublicRoomJoin(false);
+          }}>
             🚪 {t('setup.joinRoom')}
           </button>
         )}
@@ -218,6 +227,8 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
           placeholder="Enter room code"
+          disabled={isPublicRoomJoin}
+          style={isPublicRoomJoin ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
         />
       </div>
 
@@ -231,21 +242,25 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
         />
       </div>
 
-      <div className="form-group">
-        <label>Choose Your Color</label>
-        <ColorSelector
-          selectedColor={selectedColor}
-          onColorSelect={setSelectedColor}
-        />
-      </div>
+      {!isPublicRoomJoin && (
+        <div className="form-group">
+          <label>Choose Your Color</label>
+          <ColorSelector
+            selectedColor={selectedColor}
+            onColorSelect={setSelectedColor}
+          />
+        </div>
+      )}
 
-      <div className="form-group">
-        <label>Profile Photo or Icon</label>
-        <PhotoUpload
-          selectedPhoto={selectedPhoto}
-          onPhotoSelect={setSelectedPhoto}
-        />
-      </div>
+      {!isPublicRoomJoin && (
+        <div className="form-group">
+          <label>Profile Photo or Icon</label>
+          <PhotoUpload
+            selectedPhoto={selectedPhoto}
+            onPhotoSelect={setSelectedPhoto}
+          />
+        </div>
+      )}
 
       {!selectedPhoto && (
         <div className="form-group">
@@ -261,7 +276,10 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
       <button className="btn" onClick={handleJoinRoom} disabled={loading}>
         {loading ? 'Joining...' : 'Join Room & Start Tracking'}
       </button>
-      <button className="btn btn-secondary" onClick={() => setView('initial')}>
+      <button className="btn btn-secondary" onClick={() => {
+        setView('initial');
+        setIsPublicRoomJoin(false);
+      }}>
         Back
       </button>
     </div>
