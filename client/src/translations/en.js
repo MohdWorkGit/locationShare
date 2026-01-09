@@ -130,9 +130,13 @@ export default {
     selectRoom: 'Select a room',
     selectRoomDesc: 'Click on a room from the list to view details',
     allRooms: 'All',
+    adminRooms: 'Admin',
+    userRooms: 'User',
     publicRooms: 'Public',
     privateRooms: 'Private',
     noPublicRooms: 'No public rooms available',
-    noPrivateRooms: 'No private rooms available'
+    noPrivateRooms: 'No private rooms available',
+    noAdminRooms: 'No admin rooms available',
+    noUserRooms: 'No user rooms available'
   }
 }

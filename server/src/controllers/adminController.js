@@ -41,14 +41,14 @@ const adminController = {
     });
   },
 
-  // Get all admin rooms
+  // Get all rooms (both admin-created and user-created)
   getAdminRooms: (req, res) => {
-    const adminRooms = Array.from(rooms.values())
-      .filter(room => room.isAdminCreated)
+    const allRooms = Array.from(rooms.values())
       .map(room => ({
         code: room.code,
         roomName: room.roomName,
         isPublic: room.isPublic,
+        isAdminCreated: room.isAdminCreated,
         leaderIds: room.getLeaderIds(),
         userCount: room.getAllUsers().length,
         onlineCount: room.getOnlineUsersCount(),
@@ -63,7 +63,7 @@ const adminController = {
 
     res.json({
       success: true,
-      rooms: adminRooms
+      rooms: allRooms
     });
   },
 
