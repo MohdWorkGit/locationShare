@@ -130,9 +130,13 @@ export default {
     selectRoom: 'اختر غرفة',
     selectRoomDesc: 'انقر على غرفة من القائمة لعرض التفاصيل',
     allRooms: 'الكل',
+    adminRooms: 'الإدارية',
+    userRooms: 'المستخدمين',
     publicRooms: 'العامة',
     privateRooms: 'الخاصة',
     noPublicRooms: 'لا توجد غرف عامة متاحة',
-    noPrivateRooms: 'لا توجد غرف خاصة متاحة'
+    noPrivateRooms: 'لا توجد غرف خاصة متاحة',
+    noAdminRooms: 'لا توجد غرف إدارية متاحة',
+    noUserRooms: 'لا توجد غرف مستخدمين متاحة'
   }
 }

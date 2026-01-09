@@ -11,6 +11,14 @@ import {
   removeLeader,
   removeUser
 } from '../services/adminApi';
+import {
+  joinSocketRoom,
+  onLocationUpdated,
+  onDestinationPathUpdated,
+  onUserJoined,
+  onUserLeft,
+  onLeaderRoleUpdated
+} from '../services/socketService';
 import MapView from '../components/MapView';
 import '../styles/AdminPage.css';
 
@@ -30,6 +38,123 @@ function AdminPage() {
   useEffect(() => {
     loadRooms();
   }, []);
+
+  // Real-time socket updates for selected room
+  useEffect(() => {
+    if (!selectedRoom) return;
+
+    // Join the room to receive socket events
+    joinSocketRoom(selectedRoom.code, 'admin');
+
+    // Handle location updates
+    const handleLocationUpdate = (data) => {
+      if (data.userId && data.location) {
+        setSelectedRoom(prev => {
+          if (!prev || prev.code !== selectedRoom.code) return prev;
+
+          const updatedUsers = prev.users.map(user =>
+            user.id === data.userId
+              ? { ...user, location: data.location, lastSeen: new Date(), online: true }
+              : user
+          );
+
+          return { ...prev, users: updatedUsers };
+        });
+      }
+    };
+
+    // Handle destination path updates
+    const handleDestinationPathUpdate = (data) => {
+      if (data.destinationPath !== undefined) {
+        setSelectedRoom(prev => {
+          if (!prev || prev.code !== selectedRoom.code) return prev;
+          return {
+            ...prev,
+            destinationPath: data.destinationPath,
+            currentDestinationIndex: data.currentDestinationIndex !== undefined
+              ? data.currentDestinationIndex
+              : prev.currentDestinationIndex
+          };
+        });
+      }
+    };
+
+    // Handle user joined
+    const handleUserJoined = (data) => {
+      if (data.user && data.userId) {
+        setSelectedRoom(prev => {
+          if (!prev || prev.code !== selectedRoom.code) return prev;
+
+          // Check if user already exists
+          const userExists = prev.users.some(u => u.id === data.userId);
+          if (userExists) return prev;
+
+          const newUser = {
+            id: data.userId,
+            name: data.user.name,
+            color: data.user.color,
+            icon: data.user.icon,
+            isLeader: false,
+            location: null,
+            online: true,
+            lastSeen: new Date()
+          };
+
+          return { ...prev, users: [...prev.users, newUser] };
+        });
+      }
+    };
+
+    // Handle user left
+    const handleUserLeft = (data) => {
+      if (data.userId) {
+        setSelectedRoom(prev => {
+          if (!prev || prev.code !== selectedRoom.code) return prev;
+
+          const updatedUsers = prev.users.filter(user => user.id !== data.userId);
+          return { ...prev, users: updatedUsers };
+        });
+      }
+    };
+
+    // Handle leader role updates
+    const handleLeaderRoleUpdate = (data) => {
+      if (data.userId !== undefined) {
+        setSelectedRoom(prev => {
+          if (!prev || prev.code !== selectedRoom.code) return prev;
+
+          const updatedUsers = prev.users.map(user =>
+            user.id === data.userId
+              ? { ...user, isLeader: data.isLeader }
+              : user
+          );
+
+          // Update leaderIds array
+          let updatedLeaderIds = [...prev.leaderIds];
+          if (data.isLeader && !updatedLeaderIds.includes(data.userId)) {
+            updatedLeaderIds.push(data.userId);
+          } else if (!data.isLeader) {
+            updatedLeaderIds = updatedLeaderIds.filter(id => id !== data.userId);
+          }
+
+          return { ...prev, users: updatedUsers, leaderIds: updatedLeaderIds };
+        });
+      }
+    };
+
+    // Register event listeners
+    onLocationUpdated(handleLocationUpdate);
+    onDestinationPathUpdated(handleDestinationPathUpdate);
+    onUserJoined(handleUserJoined);
+    onUserLeft(handleUserLeft);
+    onLeaderRoleUpdated(handleLeaderRoleUpdate);
+
+    // Cleanup function
+    return () => {
+      // Socket events will auto-cleanup when component unmounts
+      // due to socket.io's built-in listener management
+    };
+  }, [selectedRoom?.code]);
 
   const loadRooms = async () => {
     try {
@@ -154,10 +279,25 @@ function AdminPage() {
     }
   };
 
+  const handleExport = async (format) => {
+    if (!selectedRoom) return;
+
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      const url = `${apiBaseUrl}/api/rooms/${selectedRoom.code}/export?format=${format}`;
+      window.open(url, '_blank');
+      showNotification(`${t('notifications.exporting')} ${format.toUpperCase()}...`, 'success');
+    } catch (error) {
+      showNotification(t('notifications.failed'), 'error');
+    }
+  };
+
   // Filter rooms based on selected tab
   const filteredRooms = rooms.filter(room => {
-    if (roomFilter === 'public') return room.isPublic;
-    if (roomFilter === 'private') return !room.isPublic;
+    if (roomFilter === 'public') return room.isPublic && room.isAdminCreated;
+    if (roomFilter === 'private') return !room.isPublic && room.isAdminCreated;
+    if (roomFilter === 'user-created') return !room.isAdminCreated;
+    if (roomFilter === 'admin-created') return room.isAdminCreated;
     return true; // 'all'
   });
 
@@ -198,18 +338,32 @@ function AdminPage() {
               <span className="room-tab-badge">{rooms.length}</span>
             </button>
             <button
+              className={`room-tab ${roomFilter === 'admin-created' ? 'active' : ''}`}
+              onClick={() => setRoomFilter('admin-created')}
+            >
+              👑 {t('admin.adminRooms')}
+              <span className="room-tab-badge">{rooms.filter(r => r.isAdminCreated).length}</span>
+            </button>
+            <button
+              className={`room-tab ${roomFilter === 'user-created' ? 'active' : ''}`}
+              onClick={() => setRoomFilter('user-created')}
+            >
+              👥 {t('admin.userRooms')}
+              <span className="room-tab-badge">{rooms.filter(r => !r.isAdminCreated).length}</span>
+            </button>
+            <button
               className={`room-tab ${roomFilter === 'public' ? 'active' : ''}`}
               onClick={() => setRoomFilter('public')}
             >
               🌐 {t('admin.publicRooms')}
-              <span className="room-tab-badge">{rooms.filter(r => r.isPublic).length}</span>
+              <span className="room-tab-badge">{rooms.filter(r => r.isPublic && r.isAdminCreated).length}</span>
             </button>
             <button
               className={`room-tab ${roomFilter === 'private' ? 'active' : ''}`}
               onClick={() => setRoomFilter('private')}
             >
               🔒 {t('admin.privateRooms')}
-              <span className="room-tab-badge">{rooms.filter(r => !r.isPublic).length}</span>
+              <span className="room-tab-badge">{rooms.filter(r => !r.isPublic && r.isAdminCreated).length}</span>
             </button>
           </div>
 
@@ -218,6 +372,8 @@ function AdminPage() {
           ) : filteredRooms.length === 0 ? (
             <div className="admin-empty">
               {roomFilter === 'all' ? t('admin.noRooms') :
+               roomFilter === 'admin-created' ? t('admin.noAdminRooms') :
+               roomFilter === 'user-created' ? t('admin.noUserRooms') :
                roomFilter === 'public' ? t('admin.noPublicRooms') : t('admin.noPrivateRooms')}
             </div>
           ) : (
@@ -375,6 +531,24 @@ function AdminPage() {
                     sidebarCollapsed={true}
                   />
                 </div>
+
+                {/* Export Destination Path */}
+                {selectedRoom.destinationPath && selectedRoom.destinationPath.length > 0 && (
+                  <div className="export-controls" style={{ marginTop: '20px' }}>
+                    <h4>{t('leader.exportRoute')}</h4>
+                    <div className="export-buttons" style={{ display: 'flex', gap: '10px' }}>
+                      <button className="btn btn-secondary" onClick={() => handleExport('json')}>
+                        📄 {t('export.json')}
+                      </button>
+                      <button className="btn btn-secondary" onClick={() => handleExport('gpx')}>
+                        🗺️ {t('export.gpx')}
+                      </button>
+                      <button className="btn btn-secondary" onClick={() => handleExport('csv')}>
+                        📊 {t('export.csv')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
