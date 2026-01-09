@@ -35,22 +35,27 @@ function MainApp() {
 
           if (response.success) {
             console.log('Successfully rejoined room:', response)
+
+            // Find the current user in the room's user list to get their actual leader status
+            const currentUserData = response.room.users.find(u => u.id === response.userId)
+            const actualIsLeader = currentUserData?.isLeader || false
+
             // Set the room and user state
             setCurrentRoom(response.room)
             setCurrentUser({
               id: response.userId,
               ...savedSession.user
             })
-            setIsLeader(savedSession.isLeader || false)
+            setIsLeader(actualIsLeader)
 
-            // Update the saved session with the new userId (in case it changed)
+            // Update the saved session with the actual leader status from server
             saveSession({
               room: response.room,
               user: {
                 id: response.userId,
                 ...savedSession.user
               },
-              isLeader: savedSession.isLeader || false
+              isLeader: actualIsLeader
             })
           }
         } catch (error) {
