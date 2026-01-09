@@ -22,12 +22,27 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
   const [loading, setLoading] = useState(false)
   const [publicRooms, setPublicRooms] = useState([])
   const [loadingRooms, setLoadingRooms] = useState(false)
+  const [menuOptionsVisible, setMenuOptionsVisible] = useState(() => {
+    const saved = localStorage.getItem('menuOptionsVisible');
+    return saved === 'true'; // Default is false (hidden)
+  })
 
   useEffect(() => {
     if (view === 'selectRoom') {
       loadPublicRooms();
     }
   }, [view]);
+
+  // Listen for changes to menuOptionsVisible in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem('menuOptionsVisible');
+      setMenuOptionsVisible(saved === 'true');
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const loadPublicRooms = async () => {
     setLoadingRooms(true);
@@ -98,12 +113,16 @@ function RoomSetup({ onRoomCreated, onRoomJoined }) {
         <button className="btn" onClick={() => setView('selectRoom')}>
           🌐 {t('setup.selectPublicRoom')}
         </button>
-        <button className="btn" onClick={() => setView('create')}>
-          👑 {t('setup.createRoom')}
-        </button>
-        <button className="btn btn-secondary" onClick={() => setView('join')}>
-          🚪 {t('setup.joinRoom')}
-        </button>
+        {menuOptionsVisible && (
+          <button className="btn" onClick={() => setView('create')}>
+            👑 {t('setup.createRoom')}
+          </button>
+        )}
+        {menuOptionsVisible && (
+          <button className="btn btn-secondary" onClick={() => setView('join')}>
+            🚪 {t('setup.joinRoom')}
+          </button>
+        )}
       </div>
     </div>
   )

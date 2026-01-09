@@ -34,6 +34,10 @@ function AdminPage() {
   const [newRoomPublic, setNewRoomPublic] = useState(true);
   const [notification, setNotification] = useState(null);
   const [roomFilter, setRoomFilter] = useState('all'); // 'all', 'public', 'private'
+  const [menuOptionsVisible, setMenuOptionsVisible] = useState(() => {
+    const saved = localStorage.getItem('menuOptionsVisible');
+    return saved === 'true'; // Default is false (hidden)
+  });
 
   useEffect(() => {
     loadRooms();
@@ -292,6 +296,16 @@ function AdminPage() {
     }
   };
 
+  const toggleMenuOptions = () => {
+    const newValue = !menuOptionsVisible;
+    setMenuOptionsVisible(newValue);
+    localStorage.setItem('menuOptionsVisible', newValue.toString());
+    showNotification(
+      newValue ? t('admin.menuOptionsShown') : t('admin.menuOptionsHidden'),
+      'success'
+    );
+  };
+
   // Filter rooms based on selected tab
   const filteredRooms = rooms.filter(room => {
     if (roomFilter === 'public') return room.isPublic && room.isAdminCreated;
@@ -308,6 +322,9 @@ function AdminPage() {
         <div className="admin-header-content">
           <h1>🔐 {t('admin.title')}</h1>
           <div className="admin-header-actions">
+            <button onClick={toggleMenuOptions} className="btn btn-secondary">
+              {menuOptionsVisible ? '👁️ Hide Menu Options' : '👁️‍🗨️ Show Menu Options'}
+            </button>
             <button onClick={() => navigate('/')} className="btn btn-secondary">
               🏠 {t('admin.backToHome')}
             </button>
