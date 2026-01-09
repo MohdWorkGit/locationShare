@@ -256,12 +256,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     const bgColor = hasCustomColor ? dest.color : (isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b')
     let content = '' // No content for old destinations - just empty markers
 
-    // Use leader's icon/photo ONLY for current destination
-    if (isCurrent && leaderIcon) {
-      const isPhoto = isPhotoIcon(leaderIcon)
-      content = isPhoto
-        ? `<img src="${leaderIcon}" alt="Leader" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />`
-        : leaderIcon
+    // Use target icon (🎯) for current destination instead of leader's icon
+    if (isCurrent) {
+      content = '🎯'
     }
 
     // Use custom size if provided and valid, otherwise use default sizing based on status
