@@ -1,7 +1,27 @@
 const Room = require('../models/Room');
+const multer = require('multer');
+const { parseGPX, isValidGPX } = require('../utils/gpxParser');
 
 // In-memory storage (shared with roomController)
 const rooms = require('./roomController').rooms;
+
+// Configure multer for memory storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/gpx+xml' ||
+        file.mimetype === 'application/xml' ||
+        file.mimetype === 'text/xml' ||
+        file.originalname.toLowerCase().endsWith('.gpx')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only GPX files are allowed'));
+    }
+  }
+});
 
 const adminController = {
   // Create a new admin room
@@ -281,7 +301,92 @@ const adminController = {
         isPublic: room.isPublic
       }
     });
+  },
+
+  // Upload GPX file to replace destination path
+  uploadGPX: (req, res) => {
+    const { roomCode } = req.params;
+
+    const room = rooms.get(roomCode);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No GPX file uploaded'
+      });
+    }
+
+    try {
+      // Parse GPX file
+      const gpxContent = req.file.buffer.toString('utf-8');
+
+      // Validate GPX
+      if (!isValidGPX(gpxContent)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid GPX file format'
+        });
+      }
+
+      // Extract coordinates
+      const coordinates = parseGPX(gpxContent);
+
+      if (coordinates.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No valid coordinates found in GPX file'
+        });
+      }
+
+      // Clear existing destination path
+      room.clearDestinationPath();
+
+      // Add new destinations from GPX
+      const now = new Date();
+      coordinates.forEach((coord, index) => {
+        const destination = {
+          lat: coord.lat,
+          lng: coord.lng,
+          note: `Point ${index + 1}`,
+          color: '#2196F3', // Default blue color
+          size: 30, // Default small size
+          addedAt: now,
+          order: index,
+          updatedAt: now
+        };
+        room.addDestinationToPath(destination);
+      });
+
+      // Emit socket event to notify all users in the room
+      if (req.io) {
+        req.io.to(roomCode).emit('destination-path-updated', {
+          destinationPath: room.getDestinationPath(),
+          currentDestinationIndex: room.currentDestinationIndex
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Successfully imported ${coordinates.length} points from GPX file`,
+        destinationPath: room.getDestinationPath(),
+        pointCount: coordinates.length
+      });
+    } catch (error) {
+      console.error('Error uploading GPX:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to process GPX file'
+      });
+    }
   }
 };
 
+// Export both controller and upload middleware
 module.exports = adminController;
+module.exports.upload = upload;
