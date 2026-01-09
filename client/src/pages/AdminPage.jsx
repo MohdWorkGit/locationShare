@@ -9,7 +9,8 @@ import {
   getRoomDetails,
   assignLeader,
   removeLeader,
-  removeUser
+  removeUser,
+  uploadGPX
 } from '../services/adminApi';
 import {
   joinSocketRoom,
@@ -296,6 +297,34 @@ function AdminPage() {
     }
   };
 
+  const handleGPXUpload = async (event) => {
+    if (!selectedRoom) return;
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.gpx')) {
+      showNotification('Please select a valid GPX file', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    try {
+      const response = await uploadGPX(selectedRoom.code, file);
+      showNotification(response.message || 'GPX file uploaded successfully', 'success');
+
+      // Refresh room details to show updated path
+      const updatedRoom = await getRoomDetails(selectedRoom.code);
+      setSelectedRoom(updatedRoom.room);
+    } catch (error) {
+      showNotification(error.message, 'error');
+    } finally {
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
   const toggleMenuOptions = () => {
     const newValue = !menuOptionsVisible;
     setMenuOptionsVisible(newValue);
@@ -547,6 +576,26 @@ function AdminPage() {
                     currentDestinationIndex={selectedRoom.currentDestinationIndex}
                     sidebarCollapsed={true}
                   />
+                </div>
+
+                {/* GPX Upload */}
+                <div className="gpx-upload-controls" style={{ marginTop: '20px' }}>
+                  <h4>📤 Upload GPX File</h4>
+                  <p style={{ fontSize: '0.9em', color: '#666', marginBottom: '10px' }}>
+                    Upload a GPX file to replace the current destination path. This will clear any existing path and load the route from the GPX file.
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <label htmlFor="gpx-upload" className="btn" style={{ cursor: 'pointer', margin: 0 }}>
+                      🗺️ Choose GPX File
+                    </label>
+                    <input
+                      id="gpx-upload"
+                      type="file"
+                      accept=".gpx,application/gpx+xml"
+                      onChange={handleGPXUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Export Destination Path */}

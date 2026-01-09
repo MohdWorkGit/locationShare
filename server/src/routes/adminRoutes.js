@@ -1,5 +1,6 @@
 const express = require('express');
 const adminController = require('../controllers/adminController');
+const { upload } = require('../controllers/adminController');
 
 // Export a function that takes io instance
 function createAdminRoutes(io) {
@@ -37,6 +38,9 @@ function createAdminRoutes(io) {
 
   // Public endpoint for users to see available rooms
   router.get('/public-rooms', adminController.getPublicRooms);
+
+  // Upload GPX file to replace destination path
+  router.post('/rooms/:roomCode/upload-gpx', upload.single('gpxFile'), adminController.uploadGPX);
 
   return router;
 }

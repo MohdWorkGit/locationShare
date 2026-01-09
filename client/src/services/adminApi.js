@@ -128,3 +128,21 @@ export async function removeUser(roomCode, userId) {
 
   return response.json();
 }
+
+// Upload GPX file to replace destination path
+export async function uploadGPX(roomCode, file) {
+  const formData = new FormData();
+  formData.append('gpxFile', file);
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/rooms/${roomCode}/upload-gpx`, {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to upload GPX file');
+  }
+
+  return response.json();
+}
