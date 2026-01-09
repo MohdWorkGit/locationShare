@@ -84,7 +84,8 @@ export default {
     hidden: 'hidden',
     exporting: 'Exporting route as',
     failed: 'Failed to export route',
-    leftRoom: 'Left room successfully'
+    leftRoom: 'Left room successfully',
+    roomNoLongerExists: 'Room no longer exists or was deleted'
   },
   admin: {
     title: 'Admin Dashboard',

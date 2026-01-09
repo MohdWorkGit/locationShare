@@ -84,7 +84,8 @@ export default {
     hidden: 'مخفي',
     exporting: 'جاري تصدير المسار كـ',
     failed: 'فشل تصدير المسار',
-    leftRoom: 'تم مغادرة الغرفة بنجاح'
+    leftRoom: 'تم مغادرة الغرفة بنجاح',
+    roomNoLongerExists: 'الغرفة لم تعد موجودة أو تم حذفها'
   },
   admin: {
     title: 'لوحة تحكم المسؤول',
