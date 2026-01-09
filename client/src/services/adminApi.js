@@ -114,3 +114,17 @@ export async function removeLeader(roomCode, userId) {
 
   return response.json();
 }
+
+// Remove user from room completely
+export async function removeUser(roomCode, userId) {
+  const response = await fetch(`${API_BASE_URL}/api/admin/rooms/${roomCode}/users/${userId}`, {
+    method: 'DELETE'
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to remove user');
+  }
+
+  return response.json();
+}

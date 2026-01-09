@@ -32,6 +32,9 @@ function createAdminRoutes(io) {
   // Remove leader from room
   router.delete('/rooms/:roomCode/leaders/:userId', adminController.removeLeader);
 
+  // Remove user from room completely
+  router.delete('/rooms/:roomCode/users/:userId', adminController.removeUser);
+
   // Public endpoint for users to see available rooms
   router.get('/public-rooms', adminController.getPublicRooms);
 

@@ -161,6 +161,56 @@ const adminController = {
     });
   },
 
+  // Remove a user completely from a room
+  removeUser: (req, res) => {
+    const { roomCode, userId } = req.params;
+
+    const room = rooms.get(roomCode);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found'
+      });
+    }
+
+    const user = room.getUser(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found in room'
+      });
+    }
+
+    // Check if user is a leader
+    if (user.isLeader && room.leaderIds.size === 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot remove the last leader. Assign another leader first.'
+      });
+    }
+
+    // Remove user from room
+    room.users.delete(userId);
+    room.leaderIds.delete(userId);
+    room.locations.delete(userId);
+    room.locationHistory.delete(userId);
+    room.destinations.delete(userId);
+
+    // Emit socket event to notify all users in the room
+    if (req.io) {
+      req.io.to(roomCode).emit('user-left', {
+        userId: userId,
+        userName: user.name
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User removed from room',
+      room: room.toJSON()
+    });
+  },
+
   // Delete an admin room
   deleteAdminRoom: (req, res) => {
     const { roomCode } = req.params;
