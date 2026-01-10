@@ -245,6 +245,7 @@ function setupSocketHandlers(io) {
 
         // Notify all users in the room
         io.to(roomCode).emit('destination-path-updated', {
+          roomCode: roomCode,
           destinationPath: room.getDestinationPath(),
           currentDestinationIndex: room.currentDestinationIndex,
           message: `New destination added to path`
@@ -286,6 +287,7 @@ function setupSocketHandlers(io) {
 
         // Notify all users in the room
         io.to(roomCode).emit('destination-path-updated', {
+          roomCode: roomCode,
           destinationPath: room.getDestinationPath(),
           currentDestinationIndex: room.currentDestinationIndex,
           message: `Destination ${index + 1} updated`
@@ -327,6 +329,7 @@ function setupSocketHandlers(io) {
 
         // Notify all users in the room
         io.to(roomCode).emit('destination-path-updated', {
+          roomCode: roomCode,
           destinationPath: room.getDestinationPath(),
           currentDestinationIndex: room.currentDestinationIndex,
           message: `Destination removed from path`
@@ -367,6 +370,7 @@ function setupSocketHandlers(io) {
 
         // Notify all users in the room
         io.to(roomCode).emit('destination-path-updated', {
+          roomCode: roomCode,
           destinationPath: [],
           currentDestinationIndex: 0,
           message: `Destination path cleared`
