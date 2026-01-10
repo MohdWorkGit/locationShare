@@ -151,32 +151,6 @@ export const onRoomDeleted = (callback) => {
   s.on('room-deleted', callback)
 }
 
-// Cleanup functions to remove specific event listeners
-export const offLocationUpdated = (callback) => {
-  const s = getSocket()
-  s.off('location-updated', callback)
-}
-
-export const offDestinationPathUpdated = (callback) => {
-  const s = getSocket()
-  s.off('destination-path-updated', callback)
-}
-
-export const offUserJoined = (callback) => {
-  const s = getSocket()
-  s.off('user-joined', callback)
-}
-
-export const offUserLeft = (callback) => {
-  const s = getSocket()
-  s.off('user-left', callback)
-}
-
-export const offLeaderRoleUpdated = (callback) => {
-  const s = getSocket()
-  s.off('leader-role-updated', callback)
-}
-
 export default {
   initializeSocket,
   getSocket,
@@ -202,10 +176,5 @@ export default {
   onDestinationPathUpdated,
   onCurrentDestinationUpdated,
   onLeaderRoleUpdated,
-  onRoomDeleted,
-  offLocationUpdated,
-  offDestinationPathUpdated,
-  offUserJoined,
-  offUserLeft,
-  offLeaderRoleUpdated
+  onRoomDeleted
 }
