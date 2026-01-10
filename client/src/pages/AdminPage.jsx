@@ -70,7 +70,8 @@ function AdminPage() {
 
     // Handle destination path updates
     const handleDestinationPathUpdate = (data) => {
-      if (data.destinationPath !== undefined) {
+      // Only update if the event is for the currently selected room
+      if (data.destinationPath !== undefined && data.roomCode === selectedRoom?.code) {
         setSelectedRoom(prev => {
           if (!prev || prev.code !== selectedRoom.code) return prev;
           return {

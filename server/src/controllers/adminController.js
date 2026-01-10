@@ -366,6 +366,7 @@ const adminController = {
       // Emit socket event to notify all users in the room
       if (req.io) {
         req.io.to(roomCode).emit('destination-path-updated', {
+          roomCode: roomCode,
           destinationPath: room.getDestinationPath(),
           currentDestinationIndex: room.currentDestinationIndex
         });
