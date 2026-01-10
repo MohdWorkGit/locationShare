@@ -94,8 +94,9 @@ const roomController = {
       room.addUser(userId, { name, color, icon });
       userRooms.set(userId, roomCode);
 
-      // If this is an admin-created room with no leaders, make first user a leader
-      if (room.isAdminCreated && room.getLeaderIds().length === 0) {
+      // If this is an admin-created PRIVATE room with no leaders, make first user a leader
+      // Public rooms should only have leaders assigned manually by admin
+      if (room.isAdminCreated && !room.isPublic && room.getLeaderIds().length === 0) {
         room.addLeader(userId);
       }
 
