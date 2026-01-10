@@ -18,12 +18,7 @@ import {
   onDestinationPathUpdated,
   onUserJoined,
   onUserLeft,
-  onLeaderRoleUpdated,
-  offLocationUpdated,
-  offDestinationPathUpdated,
-  offUserJoined,
-  offUserLeft,
-  offLeaderRoleUpdated
+  onLeaderRoleUpdated
 } from '../services/socketService';
 import MapView from '../components/MapView';
 import '../styles/AdminPage.css';
@@ -159,13 +154,10 @@ function AdminPage() {
     onUserLeft(handleUserLeft);
     onLeaderRoleUpdated(handleLeaderRoleUpdate);
 
-    // Cleanup function - Remove event listeners when switching rooms or unmounting
+    // Cleanup function
     return () => {
-      offLocationUpdated(handleLocationUpdate);
-      offDestinationPathUpdated(handleDestinationPathUpdate);
-      offUserJoined(handleUserJoined);
-      offUserLeft(handleUserLeft);
-      offLeaderRoleUpdated(handleLeaderRoleUpdate);
+      // Socket events will auto-cleanup when component unmounts
+      // due to socket.io's built-in listener management
     };
   }, [selectedRoom?.code]);
 
