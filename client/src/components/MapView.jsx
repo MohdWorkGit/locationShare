@@ -287,32 +287,15 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     return leader?.icon || null
   }
 
-  // Function to calculate pixel distance between two lat/lng points at a given zoom level
-  const getPixelDistance = (lat1, lng1, lat2, lng2, zoom) => {
-    // Leaflet uses a simple equirectangular projection for pixel calculations
-    const EARTH_RADIUS = 6378137 // meters
-    const metersPerPixel = (156543.03392 * Math.cos(lat1 * Math.PI / 180)) / Math.pow(2, zoom)
-
-    // Calculate distance in meters using Haversine formula (simplified)
-    const dLat = (lat2 - lat1) * Math.PI / 180
-    const dLng = (lng2 - lng1) * Math.PI / 180
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-    const distanceInMeters = EARTH_RADIUS * c
-
-    // Convert to pixels
-    return distanceInMeters / metersPerPixel
-  }
-
   // Filter out overlapping markers at all zoom levels
   const visibleMembers = useMemo(() => {
     const membersList = Object.values(members).filter(m => m.location)
 
-    // Define overlap threshold in pixels (markers closer than this are considered overlapping)
-    const overlapThreshold = 50
+    if (!mapRef.current) {
+      return membersList
+    }
 
+    const map = mapRef.current
     const visible = []
     const hidden = new Set()
 
@@ -329,15 +312,17 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
       // Check if this member overlaps with any already visible member
       let overlaps = false
       for (const visibleMember of visible) {
-        const distance = getPixelDistance(
-          member.location.lat,
-          member.location.lng,
-          visibleMember.location.lat,
-          visibleMember.location.lng,
-          currentZoom
-        )
+        // Convert lat/lng to pixel coordinates
+        const point1 = map.latLngToContainerPoint([member.location.lat, member.location.lng])
+        const point2 = map.latLngToContainerPoint([visibleMember.location.lat, visibleMember.location.lng])
 
-        if (distance < overlapThreshold) {
+        // Calculate pixel distance
+        const dx = point1.x - point2.x
+        const dy = point1.y - point2.y
+        const pixelDistance = Math.sqrt(dx * dx + dy * dy)
+
+        // Markers are 40px, so if centers are within 45px they're touching/overlapping
+        if (pixelDistance < 45) {
           overlaps = true
           hidden.add(member.id)
           break
@@ -540,9 +525,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
             <Polyline
               key={`path-${member.id}`}
               positions={positions}
-              color={member.color}
-              weight={isSafari() ? 2 : 3}  // Safari: thinner lines for better performance
-              opacity={isSafari() ? 0.5 : 0.7}  // Safari: lower opacity reduces rendering cost
+              color="#2196F3"
+              weight={isSafari() ? 2 : 4}  // Safari: thinner lines for better performance
+              opacity={isSafari() ? 0.6 : 0.8}  // Safari: lower opacity reduces rendering cost
+              dashArray={isSafari() ? undefined : "10, 5"}  // Safari: disable dash for smoother rendering
             />
           )
         })}
