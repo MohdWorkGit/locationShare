@@ -306,14 +306,9 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     return distanceInMeters / metersPerPixel
   }
 
-  // Filter out overlapping markers based on zoom level
+  // Filter out overlapping markers at all zoom levels
   const visibleMembers = useMemo(() => {
     const membersList = Object.values(members).filter(m => m.location)
-
-    // At higher zoom levels (>= 15), show all markers
-    if (currentZoom >= 15) {
-      return membersList
-    }
 
     // Define overlap threshold in pixels (markers closer than this are considered overlapping)
     const overlapThreshold = 50
@@ -321,13 +316,11 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     const visible = []
     const hidden = new Set()
 
-    // Sort members by priority: current user > leader > others
+    // Sort members by most recent first (keep latest markers when overlapping)
     const sortedMembers = [...membersList].sort((a, b) => {
-      if (a.id === currentUserId) return -1
-      if (b.id === currentUserId) return 1
-      if (a.isLeader) return -1
-      if (b.isLeader) return 1
-      return 0
+      const timeA = new Date(a.lastSeen).getTime()
+      const timeB = new Date(b.lastSeen).getTime()
+      return timeB - timeA // Most recent first
     })
 
     for (const member of sortedMembers) {
@@ -357,7 +350,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     }
 
     return visible
-  }, [members, currentZoom, currentUserId])
+  }, [members, currentZoom])
 
   const getTileLayerUrl = () => {
     if (mapType === 'satellite') {
