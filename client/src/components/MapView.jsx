@@ -287,6 +287,78 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     return leader?.icon || null
   }
 
+  // Function to calculate pixel distance between two lat/lng points at a given zoom level
+  const getPixelDistance = (lat1, lng1, lat2, lng2, zoom) => {
+    // Leaflet uses a simple equirectangular projection for pixel calculations
+    const EARTH_RADIUS = 6378137 // meters
+    const metersPerPixel = (156543.03392 * Math.cos(lat1 * Math.PI / 180)) / Math.pow(2, zoom)
+
+    // Calculate distance in meters using Haversine formula (simplified)
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    const distanceInMeters = EARTH_RADIUS * c
+
+    // Convert to pixels
+    return distanceInMeters / metersPerPixel
+  }
+
+  // Filter out overlapping markers based on zoom level
+  const visibleMembers = useMemo(() => {
+    const membersList = Object.values(members).filter(m => m.location)
+
+    // At higher zoom levels (>= 15), show all markers
+    if (currentZoom >= 15) {
+      return membersList
+    }
+
+    // Define overlap threshold in pixels (markers closer than this are considered overlapping)
+    const overlapThreshold = 50
+
+    const visible = []
+    const hidden = new Set()
+
+    // Sort members by priority: current user > leader > others
+    const sortedMembers = [...membersList].sort((a, b) => {
+      if (a.id === currentUserId) return -1
+      if (b.id === currentUserId) return 1
+      if (a.isLeader) return -1
+      if (b.isLeader) return 1
+      return 0
+    })
+
+    for (const member of sortedMembers) {
+      if (hidden.has(member.id)) continue
+
+      // Check if this member overlaps with any already visible member
+      let overlaps = false
+      for (const visibleMember of visible) {
+        const distance = getPixelDistance(
+          member.location.lat,
+          member.location.lng,
+          visibleMember.location.lat,
+          visibleMember.location.lng,
+          currentZoom
+        )
+
+        if (distance < overlapThreshold) {
+          overlaps = true
+          hidden.add(member.id)
+          break
+        }
+      }
+
+      if (!overlaps) {
+        visible.push(member)
+      }
+    }
+
+    return visible
+  }, [members, currentZoom, currentUserId])
+
   const getTileLayerUrl = () => {
     if (mapType === 'satellite') {
       return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
@@ -376,9 +448,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           onMapClick={handleMapClick}
         />
 
-        {Object.values(members).map(member => {
-          if (!member.location) return null
-
+        {visibleMembers.map(member => {
           const { lat, lng, accuracy } = member.location
           const icon = createCustomIcon(member)
 
