@@ -532,7 +532,6 @@ function AdminPage() {
                               <button
                                 onClick={() => handleRemoveUser(user.id)}
                                 className="btn btn-small btn-delete"
-                                style={{ marginLeft: '5px' }}
                               >
                                 🗑️ {t('admin.removeUser')}
                               </button>
@@ -548,7 +547,6 @@ function AdminPage() {
                               <button
                                 onClick={() => handleRemoveUser(user.id)}
                                 className="btn btn-small btn-delete"
-                                style={{ marginLeft: '5px' }}
                               >
                                 🗑️ {t('admin.removeUser')}
                               </button>
