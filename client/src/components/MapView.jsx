@@ -6,6 +6,46 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { isSafari } from '../utils/platformDetection'
 import 'leaflet/dist/leaflet.css'
 
+// Calculate bearing between two points (in degrees)
+function calculateBearing(lat1, lng1, lat2, lng2) {
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const y = Math.sin(dLng) * Math.cos(lat2 * Math.PI / 180)
+  const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+            Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLng)
+  const bearing = Math.atan2(y, x) * 180 / Math.PI
+  return (bearing + 360) % 360
+}
+
+// Create arrow icon pointing in a specific direction
+function createArrowIcon(bearing) {
+  const size = isSafari() ? 16 : 20 // Match relative to path weight
+  return L.divIcon({
+    html: `
+      <div style="
+        width: ${size}px;
+        height: ${size}px;
+        transform: rotate(${bearing}deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="${size}" height="${size}" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M10 2 L18 10 L10 18 L10 12 L2 12 L2 8 L10 8 Z"
+            fill="#2196F3"
+            stroke="white"
+            stroke-width="1.5"
+            opacity="0.9"
+          />
+        </svg>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    className: 'arrow-marker'
+  })
+}
+
 function MapClickHandler({ isLeader, onMapClick }) {
   useMapEvents({
     click: (e) => {
@@ -535,6 +575,35 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
             dashArray={isSafari() ? undefined : "10, 5"}  // Safari: disable dash for smoother rendering
           />
         )}
+
+        {/* Arrow markers showing direction along the path */}
+        {destinationPath && destinationPath.length > 1 && destinationPath.map((dest, index) => {
+          if (index === destinationPath.length - 1) return null // Skip last point (no next point)
+
+          const currentPoint = dest
+          const nextPoint = destinationPath[index + 1]
+
+          // Calculate midpoint between consecutive destinations
+          const midLat = (currentPoint.lat + nextPoint.lat) / 2
+          const midLng = (currentPoint.lng + nextPoint.lng) / 2
+
+          // Calculate bearing from current to next point
+          const bearing = calculateBearing(
+            currentPoint.lat,
+            currentPoint.lng,
+            nextPoint.lat,
+            nextPoint.lng
+          )
+
+          return (
+            <Marker
+              key={`arrow-${index}`}
+              position={[midLat, midLng]}
+              icon={createArrowIcon(bearing)}
+              interactive={false}
+            />
+          )
+        })}
 
         {pathsVisible && Object.values(members).map(member => {
           if (!member.path || member.path.length < 2) return null
