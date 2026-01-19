@@ -460,6 +460,10 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
         {destinationPath && destinationPath.map((dest, index) => {
           const isCurrent = index === currentDestinationIndex
           const isVisited = index < currentDestinationIndex
+
+          // Only show current destination when markers are hidden
+          if (!showMarkers && !isCurrent) return null
+
           const leaderIcon = getLeaderIcon()
           const icon = createDestinationIcon(dest, index + 1, isCurrent, isVisited, leaderIcon)
 
