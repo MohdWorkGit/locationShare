@@ -251,20 +251,26 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
     })
   }
 
-  const createDestinationIcon = (dest, number, isCurrent, isVisited, leaderIcon) => {
+  const createDestinationIcon = (dest, number, index, isCurrent, isVisited, leaderIcon) => {
     // Use custom color if provided, otherwise use default colors
     const hasCustomColor = dest.color && dest.color !== ''
     const bgColor = hasCustomColor ? dest.color : (isVisited ? '#9e9e9e' : isCurrent ? '#ff9800' : '#ff6b6b')
     let content = '' // No content for old destinations - just empty markers
 
+    // Use flag icon (🚩) for first destination (starting point)
+    if (index === 0) {
+      content = '🚩'
+    }
     // Use target icon (🎯) for current destination instead of leader's icon
-    if (isCurrent) {
+    else if (isCurrent) {
       content = '🎯'
     }
 
     // Use custom size if provided and valid, otherwise use default sizing based on status
     const hasCustomSize = dest.size && dest.size > 0
-    const size = hasCustomSize ? dest.size : (isCurrent ? 50 : 15)  // Current: 50px, Visited: 15px
+    // First destination and current destination both get 50px, visited get 15px
+    const isFirstDest = index === 0
+    const size = hasCustomSize ? dest.size : (isCurrent || isFirstDest ? 50 : 15)
     const iconSize = [size, size]
     const iconAnchor = [size / 2, size / 2]
 
@@ -275,7 +281,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
 
     return L.divIcon({
       className: 'destination-marker',
-      html: `<div style="background: ${bgColor}; color: white; border: ${borderWidth} solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: ${boxShadow}; font-size: ${isCurrent ? '24px' : '12px'}; overflow: hidden;">
+      html: `<div style="background: ${bgColor}; color: white; border: ${borderWidth} solid white; border-radius: 50%; width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: ${boxShadow}; font-size: ${isCurrent || isFirstDest ? '24px' : '12px'}; overflow: hidden;">
         ${content}
       </div>`,
       iconSize: iconSize,
@@ -461,11 +467,11 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           const isCurrent = index === currentDestinationIndex
           const isVisited = index < currentDestinationIndex
 
-          // Only show current destination when markers are hidden
-          if (!showMarkers && !isCurrent) return null
+          // Show current destination and first destination (starting flag) when markers are hidden
+          if (!showMarkers && !isCurrent && index !== 0) return null
 
           const leaderIcon = getLeaderIcon()
-          const icon = createDestinationIcon(dest, index + 1, isCurrent, isVisited, leaderIcon)
+          const icon = createDestinationIcon(dest, index + 1, index, isCurrent, isVisited, leaderIcon)
 
           return (
             <Marker
