@@ -49,6 +49,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
   const [hasSetInitialView, setHasSetInitialView] = useState(false)
   const [mapType, setMapType] = useState('street') // street or satellite
   const [trackingMode, setTrackingMode] = useState('user') // 'none', 'user', 'destination'
+  const [showMarkers, setShowMarkers] = useState(true) // Control marker visibility
   const [showDestinationModal, setShowDestinationModal] = useState(false)
   const [editingDestinationIndex, setEditingDestinationIndex] = useState(null)
   const [destinationNote, setDestinationNote] = useState('')
@@ -364,6 +365,15 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           {mapType === 'street' ? '🛰️' : '🗺️'}
         </button>
 
+        {/* Toggle Markers */}
+        <button
+          className={`map-control-btn ${showMarkers ? 'active' : ''}`}
+          onClick={() => setShowMarkers(!showMarkers)}
+          title={showMarkers ? 'Hide Map Points' : 'Show Map Points'}
+        >
+          {showMarkers ? '👁️' : '👁️‍🗨️'}
+        </button>
+
         {/* Zoom Controls */}
         <button
           className="map-control-btn"
@@ -426,7 +436,7 @@ function MapView({ members, currentUserId, isLeader, pathsVisible, destinationPa
           onMapClick={handleMapClick}
         />
 
-        {visibleMembers.map(member => {
+        {showMarkers && visibleMembers.map(member => {
           const { lat, lng, accuracy } = member.location
           const icon = createCustomIcon(member)
 
